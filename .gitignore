@@ -1,0 +1,10 @@
+*.pyc
+.elasticbeanstalk/
+release/
+.idea
+virenv
+virenv/*
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
