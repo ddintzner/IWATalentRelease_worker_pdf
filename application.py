@@ -128,7 +128,7 @@ def customer_registered():
 
             '''
 
-            legalCopy = talentreleaseQuery['projectID']
+            #legalCopy = talentreleaseQuery['projectID']
 
             client.send_email(
                 Destination={
@@ -140,7 +140,7 @@ def customer_registered():
                     'Body': {
                         'Html': {
                             'Charset': CHARSET,
-                            'Data': BODY_HTML  % legalCopy,
+                            'Data': BODY_HTML  % type(talentreleaseQuery),
                         },
                         'Text': {
                             'Charset': CHARSET,
