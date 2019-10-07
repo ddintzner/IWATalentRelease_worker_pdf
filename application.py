@@ -107,7 +107,23 @@ def customer_registered():
             # structure
             # {'talentreleasecode': val}
 
-            talentrelease = TalentReleasesDB.query.filter_by(talentreleasecode=message['talentreleasecode']).first_or_404()
+            talentreleaseQuery = TalentReleasesDB.query.filter_by(talentreleasecode=message['talentreleasecode']).first_or_404()
+
+            talentReleases = []
+
+
+            for element in talentreleaseQuery:
+                talentRelease = {}
+                talentRelease['talentreleasecode'] = element.talentreleasecode
+                talentRelease['images'] = json.loads("".join(element.images))
+                talentRelease['userdetails'] = json.loads("".join(element.userdetails))
+                talentRelease['pdflocation'] = element.pdflocation
+                talentRelease['projectID'] = element.projectID
+                talentRelease['releasetemplate'] = element.releasetemplate
+                talentRelease['verified'] = element.verified
+
+                talentReleases.append(talentRelease)
+
 
             legalCopy = talentrelease['releasetemplate']['copy']
 
