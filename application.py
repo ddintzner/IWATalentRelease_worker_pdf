@@ -106,10 +106,12 @@ def customer_registered():
 
             # structure
             # {'talentreleasecode': val}
-
             talentreleaseQuery = TalentReleasesDB.query.filter_by(talentreleasecode=message['talentreleasecode']).first_or_404()
 
             talentReleases = []
+
+            '''
+            customer_dict = dict((col, getattr(customer, col)) for col in customer.__table__.columns.keys())
 
 
             for element in talentreleaseQuery:
@@ -124,8 +126,9 @@ def customer_registered():
 
                 talentReleases.append(talentRelease)
 
+            '''
 
-            legalCopy = talentrelease['releasetemplate']['copy']
+            legalCopy = talentreleaseQuery['projectID']
 
             client.send_email(
                 Destination={
