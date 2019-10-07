@@ -31,6 +31,7 @@ import boto3
 
 from botocore.exceptions import ClientError
 
+db = SQLAlchemy()
 
 # Create and configure the Flask app
 application = flask.Flask(__name__)
@@ -45,7 +46,7 @@ application.config['SECRET_SQS_KEY'] =  os.environ.get('SECRET_SQS_KEY')
 client = boto3.client('ses',region_name=application.config['AWS_REGION'])
 
 
-db = SQLAlchemy()
+
 
 
 SUBJECT = "IWATalentRelease "
@@ -136,7 +137,6 @@ def customer_registered():
             Source=application.config['SOURCE_EMAIL_ADDRESS'])
 
             
-
 
 
             '''
