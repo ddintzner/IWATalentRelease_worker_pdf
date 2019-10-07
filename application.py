@@ -106,7 +106,7 @@ def customer_registered():
 
             # structure
             # {'talentreleasecode': val}
-            talentreleaseQuery = TalentReleasesDB.query.filter_by(talentreleasecode=message['talentreleasecode']).first_or_404()
+            talentreleaseQuery = TalentReleasesDB.query.filter_by(talentreleasecode='Talent-T8F7IP').first_or_404()
 
             talentReleases = []
 
