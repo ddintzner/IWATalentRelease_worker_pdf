@@ -107,7 +107,7 @@ def customer_registered():
             # structure
             # {'talentreleasecode': val}
 
-            talentrelease = TalentReleasesDB.query.filter_by(talentreleasecode=message['talentreleasecode']).first()
+            talentrelease = TalentReleasesDB.query.filter_by(talentreleasecode=message['talentreleasecode']).first_or_404()
 
             legalCopy = talentrelease['releasetemplate']['copy']
 
