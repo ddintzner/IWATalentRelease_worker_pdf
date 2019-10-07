@@ -108,27 +108,22 @@ def customer_registered():
             # {'talentreleasecode': val}
             talentreleaseQuery = TalentReleasesDB.query.filter_by(talentreleasecode='Talent-T8F7IP').first_or_404()
 
-            talentReleases = []
+            release = {}
+            release["talentreleasecode"] = talentreleaseQuery.talentreleasecode
 
-            '''
-            customer_dict = dict((col, getattr(customer, col)) for col in customer.__table__.columns.keys())
+            #parse our the talent release
+            release["userdetails"] = json.loads(talentreleaseQuery.userdetails)
+            release["projectID"] = talentreleaseQuery.projectID
+            release["releasetemplate"] = talentreleaseQuery.releasetemplate
+            release["verified"] = talentreleaseQuery.verified
+            release["createdby"] = talentreleaseQuery.createdby
+            release["createddate"] = talentreleaseQuery.createddate
+            release["uploadeddate"] = talentreleaseQuery.uploadeddate
+            release["notes"] = talentreleaseQuery.notes
 
 
-            for element in talentreleaseQuery:
-                talentRelease = {}
-                talentRelease['talentreleasecode'] = element.talentreleasecode
-                talentRelease['images'] = json.loads("".join(element.images))
-                talentRelease['userdetails'] = json.loads("".join(element.userdetails))
-                talentRelease['pdflocation'] = element.pdflocation
-                talentRelease['projectID'] = element.projectID
-                talentRelease['releasetemplate'] = element.releasetemplate
-                talentRelease['verified'] = element.verified
+            release["minorRelease"] = "minor_firstname" in release["userdetails"]
 
-                talentReleases.append(talentRelease)
-
-            '''
-
-            #legalCopy = talentreleaseQuery['projectID']
 
             client.send_email(
                 Destination={
@@ -140,7 +135,8 @@ def customer_registered():
                     'Body': {
                         'Html': {
                             'Charset': CHARSET,
-                            'Data': BODY_HTML  % type(talentreleaseQuery),
+                            'Data': BODY_HTML  % release["projectID"]
+                            ,
                         },
                         'Text': {
                             'Charset': CHARSET,
