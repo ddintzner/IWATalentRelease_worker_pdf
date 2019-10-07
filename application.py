@@ -106,7 +106,7 @@ def customer_registered():
 
             # structure
             # {'talentreleasecode': val}
-            talentreleaseQuery = TalentReleasesDB.query.filter_by(talentreleasecode='Talent-T8F7IP').first_or_404()
+            talentreleaseQuery = TalentReleasesDB.query.filter_by(talentreleasecode='talentreleasecode').first_or_404()
 
             release = {}
             release["talentreleasecode"] = talentreleaseQuery.talentreleasecode
@@ -128,7 +128,7 @@ def customer_registered():
             client.send_email(
                 Destination={
                     'ToAddresses': [
-                        'dkdin@hotmail.com',
+                         release["createdby"],
                     ],
                 },
                 Message={
