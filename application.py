@@ -102,11 +102,14 @@ def customer_registered():
         message = dict()
         try:
             # If the message has an SNS envelope, extract the inner message
-            message = request.json
+            if 'TopicArn' in request.json and 'Message' in request.json:
+                message = json.loads(request.json['Message'])
+            else:
+                message = request.json
 
             # structure
             # {'talentreleasecode': val}
-            talentreleaseQuery = TalentReleasesDB.query.filter_by(talentreleasecode='talentreleasecode').first_or_404()
+            talentreleaseQuery = TalentReleasesDB.query.filter_by(talentreleasecode=message['talentreleasecode']).first_or_404()
 
             release = {}
             release["talentreleasecode"] = talentreleaseQuery.talentreleasecode
