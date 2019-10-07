@@ -12,22 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+import os
+from datetime import datetime, timedelta, timezone
+import io
+from config import Config
+
 import logging
 import json
 
 import flask
 from flask import request, Response
+from flask_sqlalchemy import SQLAlchemy
 
-import sys
-import os
-from datetime import datetime, timedelta, timezone
+import pdfkit
 
 import boto3
+
 from botocore.exceptions import ClientError
+
 
 # Create and configure the Flask app
 application = flask.Flask(__name__)
-application.config.from_object('default_config')
+application.config.from_object(Config)
+db.init_app(application)
 application.debug = application.config['FLASK_DEBUG'] in ['true', 'True']
 
 application.config['ACCESS_SQS_KEY'] =  os.environ.get('ACCESS_SQS_KEY')  
@@ -37,13 +45,10 @@ application.config['SECRET_SQS_KEY'] =  os.environ.get('SECRET_SQS_KEY')
 client = boto3.client('ses',region_name=application.config['AWS_REGION'])
 
 
-# Email message vars
-#SUBJECT = "Thanks for signing up!"
-#BODY = "Hi %s!\n\nWe're excited that you're excited about our new product! We'll let you know as soon as it's available.\n\nThanks,\n\nA New Startup"
+db = SQLAlchemy()
 
 
-
-SUBJECT = "Lost Password Recovery"
+SUBJECT = "IWATalentRelease "
 
 # The email body for recipients with non-HTML email clients.
 BODY_TEXT = ("Lost password for IWATalent Release\r\n"
@@ -64,7 +69,27 @@ BODY_HTML = """<html>
 # The character encoding for the email.
 CHARSET = "UTF-8"
 
-@application.route('/lostpasswordWorker', methods=['POST'])
+
+class TalentReleasesDB(db.Model):
+       __tablename__ = 'releases'
+       
+       talentreleasecode = db.Column(db.String, primary_key=True)
+       userdetails = db.Column(db.JSON)
+       images = db.Column(db.JSON)
+       pdflocation = db.Column(db.String)
+       projectID = db.Column(db.String)
+       releasetemplate = db.Column(db.String)
+       createdby = db.Column(db.String)
+       createddate = db.Column(db.Date)
+       uploadeddate = db.Column(db.Date)
+       emailedtalent = db.Column(db.Boolean)
+       emailtalentdate = db.Column(db.Date)
+       verified = db.Column(db.Boolean)
+       verifieddate = db.Column(db.Date)
+       notes = db.Column(db.Date)
+
+
+@application.route('/pdfWorker', methods=['POST'])
 def customer_registered():
     """Send an e-mail using SES"""
 
@@ -76,23 +101,26 @@ def customer_registered():
         message = dict()
         try:
             # If the message has an SNS envelope, extract the inner message
-            if 'TopicArn' in request.json and 'Message' in request.json:
-                message = json.loads(request.json['Message'])
-            else:
-                message = request.json
-            
+            message = request.json
+
+            # structure
+            # {'talentreleasecode': val}
+
+            talentrelease = TalentReleasesDB.query.filter_by(email=message['talentreleasecode']).first()
+
+            legalCopy = talentrelease['releasetemplate']['copy']
 
             client.send_email(
                 Destination={
                     'ToAddresses': [
-                        message['email'],
+                        'dkdin@hotmail.com',
                     ],
                 },
                 Message={
                     'Body': {
                         'Html': {
                             'Charset': CHARSET,
-                            'Data': BODY_HTML  % message['recover_url'],
+                            'Data': BODY_HTML  % legalCopy,
                         },
                         'Text': {
                             'Charset': CHARSET,
@@ -104,7 +132,45 @@ def customer_registered():
                         'Data': SUBJECT,
                     },
                 },
-                Source=application.config['SOURCE_EMAIL_ADDRESS'])
+
+            Source=application.config['SOURCE_EMAIL_ADDRESS'])
+
+            
+
+
+
+            '''
+            copy = legalCopy.replace("\r\n", "<br />")
+            copy = Markup(copy)
+
+
+            typeSuffix = 'minor' if releases.type == 'Minor' else 'standard'
+
+
+            uploadedimages = []
+
+            imagePhoto  = get_image_from_obj(file, app.config["S3_BUCKET"], message['photo'])
+            imageSignature = get_image_from_obj(file, app.config["S3_BUCKET"], message['signature'])
+
+            uploadedimages.append(imagePhoto)
+            uploadedimages.append(imageSignature)
+
+
+            rendered = render_template('renderrelease_' + typeSuffix + '.html',  talentRelease=talentRelease, uploadedimages=uploadedimages, legalCopy=message['copy'])
+
+            filename =  "{0}-{1}{2}.pdf".format(talentReleaseID , talentRelease['firstname'], talentRelease['lastname'])
+
+
+            pdf = pdfkit.from_string(rendered, False)
+            pdfpath = "{0}/{1}".format(form.projectID.data, filename)  
+
+
+            put_file_to_s3(pdf, app.config["S3_BUCKET"], pdfpath)
+
+            newTalentRelease.pdflocation = pdfpath
+
+            '''
+
 
             response = Response("", status=200)
 
