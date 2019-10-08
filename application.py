@@ -71,6 +71,8 @@ BODY_HTML = """<html>
 CHARSET = "UTF-8"
 
 
+#SQLAlchemy
+
 class TalentReleasesDB(db.Model):
        __tablename__ = 'releases'
        
@@ -88,6 +90,34 @@ class TalentReleasesDB(db.Model):
        verified = db.Column(db.Boolean)
        verifieddate = db.Column(db.Date)
        notes = db.Column(db.Date)
+
+
+#BOTO3
+
+def get_image_from_obj(bucket_name, filepath):
+
+        #a few steps to take so we can use 'download_fileobj' to decrypt the 'aws:kms'
+
+        tObj = s3R.Object(bucket_name, filepath)
+        tmp = tempfile.NamedTemporaryFile()
+
+        with open(tmp.name, 'wb') as f:
+
+            tObj.download_fileobj(f)
+            imTmp = mpimg.imread(tmp.name)
+
+            im = Image.fromarray(imTmp)
+            rawBytes = io.BytesIO()
+
+            im.save(rawBytes, "PNG")
+            rawBytes.seek(0)  # return to the start of the file
+            base64Img = base64.b64encode(rawBytes.read()).decode('utf-8')
+
+            #return a 'base64' encoded image to insert in the HTML 'IMG' src like:
+            # <img src="data:image/png;base64,{{base64Img}}" 
+
+            return base64Img
+
 
 
 @application.route('/pdfWorker', methods=['POST'])
@@ -112,12 +142,15 @@ def customer_registered():
             talentreleaseQuery = TalentReleasesDB.query.filter_by(talentreleasecode=message['talentreleasecode']).first_or_404()
 
             release = {}
+
+
             release["talentreleasecode"] = talentreleaseQuery.talentreleasecode
 
             #parse our the talent release
             release["userdetails"] = json.loads(talentreleaseQuery.userdetails)
+            release["images"] = json.loads(talentreleaseQuery.images)
             release["projectID"] = talentreleaseQuery.projectID
-            release["releasetemplate"] = talentreleaseQuery.releasetemplate
+            release["releasetemplate"] = json.loads(talentreleaseQuery.releasetemplate)
             release["verified"] = talentreleaseQuery.verified
             release["createdby"] = talentreleaseQuery.createdby
             release["createddate"] = talentreleaseQuery.createddate
@@ -125,70 +158,91 @@ def customer_registered():
             release["notes"] = talentreleaseQuery.notes
 
 
-            release["minorRelease"] = "minor_firstname" in release["userdetails"]
 
+            def sendEmail(release):
+              client.send_email(
+                  Destination={
+                      'ToAddresses': [
+                           release["createdby"],
+                      ],
+                  },
+                  Message={
+                      'Body': {
+                          'Html': {
+                              'Charset': CHARSET,
+                              'Data': BODY_HTML  % release["projectID"]
+                              ,
+                          },
+                          'Text': {
+                              'Charset': CHARSET,
+                              'Data': BODY_TEXT,
+                          },
+                      },
+                      'Subject': {
+                          'Charset': CHARSET,
+                          'Data': SUBJECT,
+                      },
+                  },
 
-            client.send_email(
-                Destination={
-                    'ToAddresses': [
-                         release["createdby"],
-                    ],
-                },
-                Message={
-                    'Body': {
-                        'Html': {
-                            'Charset': CHARSET,
-                            'Data': BODY_HTML  % release["projectID"]
-                            ,
-                        },
-                        'Text': {
-                            'Charset': CHARSET,
-                            'Data': BODY_TEXT,
-                        },
-                    },
-                    'Subject': {
-                        'Charset': CHARSET,
-                        'Data': SUBJECT,
-                    },
-                },
+              Source=application.config['SOURCE_EMAIL_ADDRESS'])
 
-            Source=application.config['SOURCE_EMAIL_ADDRESS'])
+            #talent release rendered
 
-            
+            talentRelease = {}
+            talentRelease['date'] = release['userdetails']['date']
+            talentRelease['firstname'] = release['userdetails']['firstname']
+            talentRelease['lastname'] = release['userdetails']['lastname']
+            talentRelease['street'] = release['userdetails']['street']
+            talentRelease['phone'] = release['userdetails']['phone']
+            talentRelease['state'] = release['userdetails']['state']
+            talentRelease['city'] = release['userdetails']['city']
+            talentRelease['email'] = release['userdetails']['email']
 
+            #TODO: ADD LEGAL TITLE AND LEGAL VARS TO TALENTDB
+            talentRelease['releaseLegalCopy'] = release['releasetemplate']['copy']  
+            talentRelease['releaseLegalTitle'] = release['releasetemplate']['title'] # NEED TO CREATE IN DB !
+            talentRelease['legalvars'] = release['releasetemplate']['legalvars'] # NEED TO CREATE IN DB !
 
-            '''
-            copy = legalCopy.replace("\r\n", "<br />")
-            copy = Markup(copy)
-
-
-            typeSuffix = 'minor' if releases.type == 'Minor' else 'standard'
-
-
+            #images details
+            images = {}
+            uploaded_files = []
             uploadedimages = []
-
-            imagePhoto  = get_image_from_obj(file, app.config["S3_BUCKET"], message['photo'])
-            imageSignature = get_image_from_obj(file, app.config["S3_BUCKET"], message['signature'])
-
+ 
+            imagePhoto  = get_image_from_obj(app.config["S3_BUCKET"], release['imagePortrait'])
             uploadedimages.append(imagePhoto)
+
+            imageSignature = get_image_from_obj(app.config["S3_BUCKET"], release['imageSignature'])
             uploadedimages.append(imageSignature)
 
 
-            rendered = render_template('renderrelease_' + typeSuffix + '.html',  talentRelease=talentRelease, uploadedimages=uploadedimages, legalCopy=message['copy'])
+            #if template is for minor, capture the name
+            if release['releasetemplate']['type'] == 'Minor':
+                talentRelease['minor_firstname'] = release['userdetails']['minor_firstname']
+                talentRelease['minor_lasstname'] = release['userdetails']['minor_lastname']
 
-            filename =  "{0}-{1}{2}.pdf".format(talentReleaseID , talentRelease['firstname'], talentRelease['lastname'])
+                #replace the vars for any values indicated
+                legalVars = (talentRelease['legalvars']).split(',')
+
+                for legalVar in legalVars:
+                    talentRelease['releaseLegalCopy'] = talentRelease['releaseLegalCopy'].replace(legalVar,  ("<b>" + talentRelease['minor_firstname'] + " " + talentRelease['minor_lasstname'] + " </b>") )
 
 
+            copy = release['releasetemplate']['copy'].replace("\r\n", "<br />")
+            copy = Markup(copy)
+
+            #create pdf template
+            rendered = render_template('renderrelease_' + typeSuffix + '.html',  talentRelease=talentRelease, uploadedimages=uploadedimages, legalCopy=copy)
+
+            # pdf path
+            filename =  "{0}-{1}{2}.pdf".format(release["talentreleasecode"] , talentRelease['firstname'], talentRelease['lastname'])
+            pdfpath = "{0}/{1}".format(release["projectID"], filename)  
+
+            #render pdf
             pdf = pdfkit.from_string(rendered, False)
-            pdfpath = "{0}/{1}".format(form.projectID.data, filename)  
-
-
             put_file_to_s3(pdf, app.config["S3_BUCKET"], pdfpath)
 
+            #update talentrelease db with new settings
             newTalentRelease.pdflocation = pdfpath
-
-            '''
-
 
             response = Response("", status=200)
 
