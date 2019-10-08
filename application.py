@@ -150,7 +150,7 @@ def customer_registered():
             release["userdetails"] = json.loads(talentreleaseQuery.userdetails)
             release["images"] = json.loads(talentreleaseQuery.images)
             release["projectID"] = talentreleaseQuery.projectID
-            release["releasetemplate"] = json.loads(talentreleaseQuery.releasetemplate)
+            release["releasetemplate"] = talentreleaseQuery.releasetemplate
             release["verified"] = talentreleaseQuery.verified
             release["createdby"] = talentreleaseQuery.createdby
             release["createddate"] = talentreleaseQuery.createddate
