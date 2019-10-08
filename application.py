@@ -22,7 +22,7 @@ import logging
 import json
 
 import flask
-from flask import Flask, request, Response, render_template, session, redirect, url_for, send_file
+from flask import Flask, request, Response, Markup, render_template, session, redirect, url_for, send_file
 
 from flask_sqlalchemy import SQLAlchemy
 
@@ -250,8 +250,8 @@ def customer_registered():
                     talentRelease['releaseLegalCopy'] = talentRelease['releaseLegalCopy'].replace(legalVar,  ("<b>" + talentRelease['minor_firstname'] + " " + talentRelease['minor_lastname'] + " </b>") )
 
 
-            #copy = release['releasetemplate']['copy'].replace("\r\n", "<br />")
-            #copy = Markup(copy)
+            copy = release['releasetemplate']['copy'].replace("\r\n", "<br />")
+            copy = Markup(copy)
 
 
             typeSuffix = 'minor' if release['releasetemplate']['type'] == 'Minor' else 'standard'
