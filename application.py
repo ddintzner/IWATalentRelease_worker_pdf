@@ -16,32 +16,36 @@ import sys
 import os
 from datetime import datetime, timedelta, timezone
 import io
-from config import Config
-
+import random
+import math
+import string
 import logging
 import json
 
+#flask
 import flask
 from flask import Flask, request, Response, Markup, render_template, session, redirect, url_for, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask.ext.session import Session
 from flask_bootstrap import Bootstrap
+from config import Config
 
-import pdfkit
-
+#S3
 import boto3
-
 from botocore.exceptions import ClientError
 
-import random
-import math
-import string
+#create PDF
 import tempfile
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import base64
 from PIL import Image
+import pdfkit
 
+#email
+from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
 
 
 db = SQLAlchemy()
@@ -58,25 +62,25 @@ application.debug = application.config['FLASK_DEBUG'] in ['true', 'True']
 application.config['ACCESS_SQS_KEY'] =  os.environ.get('ACCESS_SQS_KEY')  
 application.config['SECRET_SQS_KEY'] =  os.environ.get('SECRET_SQS_KEY')  
 
+
+
 # Create a new SES resource and specify a region.
-client = boto3.client('ses',region_name=application.config['AWS_REGION'])
+ses = boto3.client('ses',region_name=application.config['AWS_REGION'])
 
 
-SUBJECT = "IWATalentRelease "
+SUBJECT = "IWATalentRelease PDF"
 
 
 # The email body for recipients with non-HTML email clients.
-BODY_TEXT = ("Lost password for IWATalent Release\r\n"
-             "Follow the link below to reset "
-             "AWS SDK for Python (Boto)."
-            )
+BODY_TEXT = ("We have your IWAtalentrelease PDF attached. Thank you")
+
             
 # The HTML body of the email.
 BODY_HTML = """<html>
 <head></head>
 <body>
-  <h1>Lost Password recovery</h1>
-  <p>Click link to reset password: %s!\n\n</p>
+  <h1>Thank You!</h1>
+  <p>%s, your IWATalentRelease is attached. %s!\n\n</p>
 </body>
 </html>
             """     
@@ -140,15 +144,17 @@ def get_image_from_obj(bucket_name, filepath):
         return base64Img
 
 
+
 def put_file_to_s3(output, bucket_name, filename):
 
     s3R.Object(bucket_name, filename).put(Body=output)
 
 
 
+# C R E A T E   A N D   E M A I L   P D F
+
 @application.route('/pdfWorker', methods=['POST'])
 def customer_registered():
-    """Send an e-mail using SES"""
 
     response = None
     if request.json is None:
@@ -168,8 +174,6 @@ def customer_registered():
             talentreleaseQuery = TalentReleasesDB.query.filter_by(talentreleasecode=message['talentreleasecode']).first_or_404()
 
             release = {}
-
-
             release["talentreleasecode"] = talentreleaseQuery.talentreleasecode
 
             #parse our the talent release
@@ -185,32 +189,57 @@ def customer_registered():
             release["notes"] = talentreleaseQuery.notes
 
 
-            def sendEmail(release):
-              client.send_email(
-                  Destination={
-                      'ToAddresses': [
-                           release["createdby"],
-                      ],
-                  },
-                  Message={
-                      'Body': {
-                          'Html': {
-                              'Charset': CHARSET,
-                              'Data': BODY_HTML  % release["projectID"]
-                              ,
-                          },
-                          'Text': {
-                              'Charset': CHARSET,
-                              'Data': BODY_TEXT,
-                          },
-                      },
-                      'Subject': {
-                          'Charset': CHARSET,
-                          'Data': SUBJECT,
-                      },
-                  },
 
-              Source=application.config['SOURCE_EMAIL_ADDRESS'])
+            def sendEmail(fileName, release, emailTo, releaseCreated):
+
+              #https://docs.aws.amazon.com/ses/latest/DeveloperGuide/send-email-raw.html
+
+              # Build an email
+              msg = MIMEMultipart()
+              msg['Subject'] = "IWATalentRelease PDF"
+              msg['From'] = application.config['SOURCE_EMAIL_ADDRESS']
+              msg['To'] = emailTo
+
+              # Create a multipart/alternative child container.
+              msg_body = MIMEMultipart('alternative')
+
+              # Encode the text and HTML content and set the character encoding. This step is
+              # necessary if you're sending a message with characters outside the ASCII range.
+              textpart = MIMEText(BODY_TEXT.encode(CHARSET), 'plain', CHARSET)
+              htmlpart = MIMEText(BODY_HTML.encode(CHARSET), 'html', CHARSET)
+
+              # Add the text and HTML parts to the child container.
+              msg_body.attach(textpart)
+              msg_body.attach(htmlpart)
+
+              msg.attach(msg_body)
+
+              # The attachment
+              part = MIMEApplication(release.getvalue())
+              part.add_header('Content-Disposition', 'attachment', filename=fileName)
+
+              msg.attach(part)
+
+              try:
+                # And finally, send the email
+                ses.send_raw_email(
+                    
+                    Source=application.config['SOURCE_EMAIL_ADDRESS'],
+                    Destinations=[emailTo, releaseCreated],
+                    RawMessage={
+                        'Data': msg.as_string(),
+                    }
+                )
+
+              # Display an error if something goes wrong. 
+              except ClientError as e:
+                  print(e.response['Error']['Message'])
+
+              else:
+                  print("Email sent! Message ID:"),
+                  print(response['MessageId'])
+
+
 
             #talent release rendered
 
@@ -234,34 +263,25 @@ def customer_registered():
             uploadedimages = []
  
 
-
             imagePhoto  = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imagePortrait'] )
             uploadedimages.append(imagePhoto)
+
 
             imageSignature = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imageSignature'] )
             uploadedimages.append(imageSignature)
 
 
-
             #if template is for minor, capture the name
             if release['releasetemplate']['type'] == 'Minor':
-                talentRelease['legalvars'] = release['releasetemplate']['legalvars'] # NEED TO CREATE IN DB !
                 talentRelease['minor_firstname'] = release['userdetails']['minor_firstname']
                 talentRelease['minor_lastname'] = release['userdetails']['minor_lastname']
 
-                #replace the vars for any values indicated
-                legalVars = (talentRelease['legalvars']).split(',')
-
-                for legalVar in legalVars:
-                    talentRelease['releaseLegalCopy'] = talentRelease['releaseLegalCopy'].replace(legalVar,  ("<b>" + talentRelease['minor_firstname'] + " " + talentRelease['minor_lastname'] + " </b>") )
 
 
-            copy = release['releasetemplate']['copy'].replace("\r\n", "<br />")
+            copy = talentRelease['userdetails']['releaseLegalCopy'].replace("\r\n", "<br />")
             copy = Markup(copy)
 
-
             typeSuffix = 'minor' if release['releasetemplate']['type'] == 'Minor' else 'standard'
-
 
             #create pdf template
             rendered = render_template('renderrelease_' + typeSuffix + '.html',  talentRelease=release['releasetemplate']['copy'], uploadedimages=uploadedimages, legalCopy=copy)
@@ -274,14 +294,14 @@ def customer_registered():
             pdf = pdfkit.from_string(rendered, False)
             put_file_to_s3(pdf, application.config["S3_BUCKET"], pdfpath)
 
-
             #update talentrelease db with new settings
             talentreleaseQuery.pdflocation = pdfpath
             db.session.commit()
 
 
-            response = Response("", status=200)
 
+            sendEmail(filename, pdf, talentRelease['email'], release["createdby"])
+            response = Response("", status=200)
 
 
         except Exception as ex:
