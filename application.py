@@ -227,11 +227,11 @@ def customer_registered():
                     talentRelease['releaseLegalCopy'] = talentRelease['releaseLegalCopy'].replace(legalVar,  ("<b>" + talentRelease['minor_firstname'] + " " + talentRelease['minor_lasstname'] + " </b>") )
 
 
-            copy = release['releasetemplate']['copy'].replace("\r\n", "<br />")
-            copy = Markup(copy)
+            #copy = release['releasetemplate']['copy'].replace("\r\n", "<br />")
+            #copy = Markup(copy)
 
             #create pdf template
-            rendered = render_template('renderrelease_' + typeSuffix + '.html',  talentRelease=talentRelease, uploadedimages=uploadedimages, legalCopy=copy)
+            rendered = render_template('renderrelease_' + typeSuffix + '.html',  talentRelease=release['releasetemplate']['copy'], uploadedimages=uploadedimages, legalCopy=copy)
 
             # pdf path
             filename =  "{0}-{1}{2}.pdf".format(release["talentreleasecode"] , talentRelease['firstname'], talentRelease['lastname'])
@@ -249,7 +249,7 @@ def customer_registered():
 
             response = Response("", status=200)
 
-            
+
 
         except Exception as ex:
             logging.exception('Error processing message: %s' % request.json)
