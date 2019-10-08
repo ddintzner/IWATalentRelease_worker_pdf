@@ -200,8 +200,7 @@ def customer_registered():
 
             #TODO: ADD LEGAL TITLE AND LEGAL VARS TO TALENTDB
             talentRelease['releaseLegalCopy'] = release['releasetemplate']['copy']  
-            talentRelease['releaseLegalTitle'] = release['releasetemplate']['title'] # NEED TO CREATE IN DB !
-            talentRelease['legalvars'] = release['releasetemplate']['legalvars'] # NEED TO CREATE IN DB !
+            talentRelease['releaseLegalTitle'] = release['releasetemplate']['name'] 
 
             #images details
             images = {}
@@ -217,6 +216,7 @@ def customer_registered():
 
             #if template is for minor, capture the name
             if release['releasetemplate']['type'] == 'Minor':
+                talentRelease['legalvars'] = release['releasetemplate']['legalvars'] # NEED TO CREATE IN DB !
                 talentRelease['minor_firstname'] = release['userdetails']['minor_firstname']
                 talentRelease['minor_lasstname'] = release['userdetails']['minor_lastname']
 
@@ -241,10 +241,15 @@ def customer_registered():
             pdf = pdfkit.from_string(rendered, False)
             put_file_to_s3(pdf, app.config["S3_BUCKET"], pdfpath)
 
+
             #update talentrelease db with new settings
-            newTalentRelease.pdflocation = pdfpath
+            talentreleaseQuery.pdflocation = pdfpath
+            db.session.commit()
+
 
             response = Response("", status=200)
+
+            
 
         except Exception as ex:
             logging.exception('Error processing message: %s' % request.json)
