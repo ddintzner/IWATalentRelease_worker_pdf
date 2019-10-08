@@ -51,6 +51,8 @@ db = SQLAlchemy()
 application = flask.Flask(__name__)
 application.config.from_object(Config)
 db.init_app(application)
+bootstrap = Bootstrap(application)
+
 application.debug = application.config['FLASK_DEBUG'] in ['true', 'True']
 
 application.config['ACCESS_SQS_KEY'] =  os.environ.get('ACCESS_SQS_KEY')  
