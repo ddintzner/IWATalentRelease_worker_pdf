@@ -246,7 +246,7 @@ def customer_registered():
                 legalVars = (talentRelease['legalvars']).split(',')
 
                 for legalVar in legalVars:
-                    talentRelease['releaseLegalCopy'] = talentRelease['releaseLegalCopy'].replace(legalVar,  ("<b>" + talentRelease['minor_firstname'] + " " + talentRelease['minor_lasstname'] + " </b>") )
+                    talentRelease['releaseLegalCopy'] = talentRelease['releaseLegalCopy'].replace(legalVar,  ("<b>" + talentRelease['minor_firstname'] + " " + talentRelease['minor_lastname'] + " </b>") )
 
 
             #copy = release['releasetemplate']['copy'].replace("\r\n", "<br />")
