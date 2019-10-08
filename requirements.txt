@@ -18,6 +18,8 @@ docutils==0.15.2
 Flask==0.10.1
 Flask-Bootstrap==3.3.7.1
 Flask-SQLAlchemy==2.4.1
+Flask-Migrate==2.3.1
+Flask-Session==0.3.1
 future==0.16.0
 idna==2.7
 itsdangerous==0.23
