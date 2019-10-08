@@ -46,6 +46,7 @@ from PIL import Image
 
 db = SQLAlchemy()
 
+
 # Create and configure the Flask app
 application = flask.Flask(__name__)
 application.config.from_object(Config)
@@ -138,6 +139,10 @@ def get_image_from_obj(bucket_name, filepath):
 
         return base64Img
 
+
+def put_file_to_s3(output, bucket_name, filename):
+
+    s3R.Object(bucket_name, filename).put(Body=output)
 
 
 
