@@ -44,7 +44,6 @@ from PIL import Image
 
 
 
-
 db = SQLAlchemy()
 
 # Create and configure the Flask app
@@ -62,10 +61,8 @@ application.config['SECRET_SQS_KEY'] =  os.environ.get('SECRET_SQS_KEY')
 client = boto3.client('ses',region_name=application.config['AWS_REGION'])
 
 
-
-
-
 SUBJECT = "IWATalentRelease "
+
 
 # The email body for recipients with non-HTML email clients.
 BODY_TEXT = ("Lost password for IWATalent Release\r\n"
@@ -87,7 +84,6 @@ BODY_HTML = """<html>
 CHARSET = "UTF-8"
 
 
-#SQLAlchemy
 
 class TalentReleasesDB(db.Model):
        __tablename__ = 'releases'
@@ -108,6 +104,7 @@ class TalentReleasesDB(db.Model):
        notes = db.Column(db.Date)
 
 
+
 #BOTO3
 s3R = boto3.resource(
     's3',
@@ -119,27 +116,28 @@ s3R = boto3.resource(
 
 def get_image_from_obj(bucket_name, filepath):
 
-        #a few steps to take so we can use 'download_fileobj' to decrypt the 'aws:kms'
+    #a few steps to take so we can use 'download_fileobj' to decrypt the 'aws:kms'
 
-        tObj = s3R.Object(bucket_name, filepath)
-        tmp = tempfile.NamedTemporaryFile()
+    tObj = s3R.Object(bucket_name, filepath)
+    tmp = tempfile.NamedTemporaryFile()
 
-        with open(tmp.name, 'wb') as f:
+    with open(tmp.name, 'wb') as f:
 
-            tObj.download_fileobj(f)
-            imTmp = mpimg.imread(tmp.name)
+        tObj.download_fileobj(f)
+        imTmp = mpimg.imread(tmp.name)
 
-            im = Image.fromarray(imTmp)
-            rawBytes = io.BytesIO()
+        im = Image.fromarray(imTmp)
+        rawBytes = io.BytesIO()
 
-            im.save(rawBytes, "PNG")
-            rawBytes.seek(0)  # return to the start of the file
-            base64Img = base64.b64encode(rawBytes.read()).decode('utf-8')
+        im.save(rawBytes, "PNG")
+        rawBytes.seek(0)  # return to the start of the file
+        base64Img = base64.b64encode(rawBytes.read()).decode('utf-8')
 
-            #return a 'base64' encoded image to insert in the HTML 'IMG' src like:
-            # <img src="data:image/png;base64,{{base64Img}}" 
+        #return a 'base64' encoded image to insert in the HTML 'IMG' src like:
+        # <img src="data:image/png;base64,{{base64Img}}" 
 
-            return base64Img
+        return base64Img
+
 
 
 
