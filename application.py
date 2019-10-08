@@ -235,8 +235,7 @@ def customer_registered():
             imageSignature = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imageSignature'] )
             uploadedimages.append(imageSignature)
 
-            
-            typeSuffix = 'minor' if release['releasetemplate']['type'] == 'Minor' else 'standard'
+
 
             #if template is for minor, capture the name
             if release['releasetemplate']['type'] == 'Minor':
@@ -255,7 +254,7 @@ def customer_registered():
             #copy = Markup(copy)
 
 
-            typeSuffix = 'minor' if releases.type == 'Minor' else 'standard'
+            typeSuffix = 'minor' if release['releasetemplate']['type'] == 'Minor' else 'standard'
 
 
             #create pdf template
