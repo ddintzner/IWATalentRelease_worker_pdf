@@ -155,6 +155,7 @@ def customer_registered():
             release["createdby"] = talentreleaseQuery.createdby
             release["createddate"] = talentreleaseQuery.createddate
             release["uploadeddate"] = talentreleaseQuery.uploadeddate
+            release["images"] = talentreleaseQuery.images
             release["notes"] = talentreleaseQuery.notes
 
 
@@ -207,10 +208,10 @@ def customer_registered():
             uploaded_files = []
             uploadedimages = []
  
-            imagePhoto  = get_image_from_obj(application.config["S3_BUCKET"], release['imagePortrait'])
+            imagePhoto  = get_image_from_obj(application.config["S3_BUCKET"], release["images"]['imagePortrait'])
             uploadedimages.append(imagePhoto)
 
-            imageSignature = get_image_from_obj(application.config["S3_BUCKET"], release['imageSignature'])
+            imageSignature = get_image_from_obj(application.config["S3_BUCKET"], release["images"]['imageSignature'])
             uploadedimages.append(imageSignature)
 
 
