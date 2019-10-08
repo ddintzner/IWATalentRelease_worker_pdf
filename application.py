@@ -23,8 +23,9 @@ import json
 
 import flask
 from flask import Flask, request, Response, Markup, render_template, session, redirect, url_for, send_file
-
 from flask_sqlalchemy import SQLAlchemy
+from flask.ext.session import Session
+from flask_bootstrap import Bootstrap
 
 import pdfkit
 

@@ -16,11 +16,12 @@ dockerpty==0.4.1
 docopt==0.6.2
 docutils==0.15.2
 Flask==0.10.1
+Flask-Bootstrap==3.3.7.1
 Flask-SQLAlchemy==2.4.1
 future==0.16.0
 idna==2.7
 itsdangerous==0.23
-Jinja2==2.10.1
+Jinja2==2.10
 jmespath==0.9.4
 jsonschema==2.6.0
 kiwisolver==1.1.0
