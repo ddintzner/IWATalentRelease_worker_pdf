@@ -93,6 +93,13 @@ class TalentReleasesDB(db.Model):
 
 
 #BOTO3
+s3R = boto3.resource(
+    's3',
+    aws_access_key_id = application.config['S3_KEY'],
+    aws_secret_access_key = application.config['S3_SECRET']
+
+)
+
 
 def get_image_from_obj(bucket_name, filepath):
 
