@@ -24,6 +24,7 @@ import json
 import flask
 from flask import request, Response
 from flask_sqlalchemy import SQLAlchemy
+import tempfile
 
 import pdfkit
 
