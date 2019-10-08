@@ -207,10 +207,10 @@ def customer_registered():
             uploaded_files = []
             uploadedimages = []
  
-            imagePhoto  = get_image_from_obj(app.config["S3_BUCKET"], release['imagePortrait'])
+            imagePhoto  = get_image_from_obj(application.config["S3_BUCKET"], release['imagePortrait'])
             uploadedimages.append(imagePhoto)
 
-            imageSignature = get_image_from_obj(app.config["S3_BUCKET"], release['imageSignature'])
+            imageSignature = get_image_from_obj(application.config["S3_BUCKET"], release['imageSignature'])
             uploadedimages.append(imageSignature)
 
 
@@ -218,7 +218,7 @@ def customer_registered():
             if release['releasetemplate']['type'] == 'Minor':
                 talentRelease['legalvars'] = release['releasetemplate']['legalvars'] # NEED TO CREATE IN DB !
                 talentRelease['minor_firstname'] = release['userdetails']['minor_firstname']
-                talentRelease['minor_lasstname'] = release['userdetails']['minor_lastname']
+                talentRelease['minor_lastname'] = release['userdetails']['minor_lastname']
 
                 #replace the vars for any values indicated
                 legalVars = (talentRelease['legalvars']).split(',')
