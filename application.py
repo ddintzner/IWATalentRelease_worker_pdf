@@ -148,7 +148,7 @@ def customer_registered():
 
             #parse our the talent release
             release["userdetails"] = json.loads(talentreleaseQuery.userdetails)
-            release["images"] =  talentreleaseQuery.images
+            release["images"] = talentreleaseQuery.images
             release["projectID"] = talentreleaseQuery.projectID
             release["releasetemplate"] = talentreleaseQuery.releasetemplate
             release["verified"] = talentreleaseQuery.verified
@@ -157,7 +157,6 @@ def customer_registered():
             release["uploadeddate"] = talentreleaseQuery.uploadeddate
             release["images"] = talentreleaseQuery.images
             release["notes"] = talentreleaseQuery.notes
-
 
 
             def sendEmail(release):
@@ -208,10 +207,12 @@ def customer_registered():
             uploaded_files = []
             uploadedimages = []
  
-            imagePhoto  = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imagePortrait'])
+
+
+            imagePhoto  = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imagePortrait'] )
             uploadedimages.append(imagePhoto)
 
-            imageSignature = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imageSignature'])
+            imageSignature = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imageSignature'] )
             uploadedimages.append(imageSignature)
 
 
