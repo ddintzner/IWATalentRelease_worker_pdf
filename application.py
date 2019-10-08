@@ -208,10 +208,10 @@ def customer_registered():
             uploaded_files = []
             uploadedimages = []
  
-            imagePhoto  = get_image_from_obj(application.config["S3_BUCKET"], release["images"]['imagePortrait'])
+            imagePhoto  = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imagePortrait'])
             uploadedimages.append(imagePhoto)
 
-            imageSignature = get_image_from_obj(application.config["S3_BUCKET"], release["images"]['imageSignature'])
+            imageSignature = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imageSignature'])
             uploadedimages.append(imageSignature)
 
 
