@@ -148,7 +148,7 @@ def customer_registered():
 
             #parse our the talent release
             release["userdetails"] = json.loads(talentreleaseQuery.userdetails)
-            release["images"] = json.loads(talentreleaseQuery.images)
+            release["images"] =  talentreleaseQuery.images
             release["projectID"] = talentreleaseQuery.projectID
             release["releasetemplate"] = talentreleaseQuery.releasetemplate
             release["verified"] = talentreleaseQuery.verified
