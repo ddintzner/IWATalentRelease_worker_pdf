@@ -272,7 +272,7 @@ def customer_registered():
 
             #render pdf
             pdf = pdfkit.from_string(rendered, False)
-            put_file_to_s3(pdf, app.config["S3_BUCKET"], pdfpath)
+            put_file_to_s3(pdf, application.config["S3_BUCKET"], pdfpath)
 
 
             #update talentrelease db with new settings
