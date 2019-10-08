@@ -22,15 +22,27 @@ import logging
 import json
 
 import flask
-from flask import request, Response
+from flask import Flask, request, Response, render_template, session, redirect, url_for, send_file
+
 from flask_sqlalchemy import SQLAlchemy
-import tempfile
 
 import pdfkit
 
 import boto3
 
 from botocore.exceptions import ClientError
+
+import random
+import math
+import string
+import tempfile
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import base64
+from PIL import Image
+
+
+
 
 db = SQLAlchemy()
 
