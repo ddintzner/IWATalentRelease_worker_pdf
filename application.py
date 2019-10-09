@@ -193,6 +193,7 @@ def customer_registered():
             def sendEmail(fileName, release, emailTo, releaseCreated):
 
               #https://docs.aws.amazon.com/ses/latest/DeveloperGuide/send-email-raw.html
+              response = None
 
               # Build an email
               msg = MIMEMultipart()
@@ -233,13 +234,14 @@ def customer_registered():
 
               # Display an error if something goes wrong. 
               except ClientError as e:
-                  print(e.response['Error']['Message'])
+                  response = Response(e.response['Error']['Message'], status=500)
 
               else:
                   print("Email sent! Message ID:"),
                   print(response['MessageId'])
-
-
+                  response = Response("", status=200)
+    
+              return response
 
             #talent release rendered
 
@@ -248,10 +250,11 @@ def customer_registered():
             talentRelease['firstname'] = release['userdetails']['firstname']
             talentRelease['lastname'] = release['userdetails']['lastname']
             talentRelease['street'] = release['userdetails']['street']
-            talentRelease['phone'] = release['userdetails']['phone']
+            talentRelease['phone'] = release['createdby']
             talentRelease['state'] = release['userdetails']['state']
             talentRelease['city'] = release['userdetails']['city']
             talentRelease['email'] = release['userdetails']['email']
+            talentRelease['zip'] = release['userdetails']['zip']
             talentRelease['createdby'] = release['createdby']
 
 
@@ -298,10 +301,7 @@ def customer_registered():
             talentreleaseQuery.pdflocation = pdfpath
             db.session.commit()
 
-
-
-            sendEmail(filename, pdf, talentRelease['email'], talentRelease['createdby'])
-            response = Response("", status=200)
+            response = sendEmail(filename, pdf, talentRelease['email'], talentRelease['createdby'])
 
 
         except Exception as ex:
