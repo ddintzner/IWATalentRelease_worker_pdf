@@ -215,7 +215,7 @@ def customer_registered():
               msg.attach(msg_body)
 
               # The attachment
-              part = MIMEApplication(release.getvalue())
+              part = MIMEApplication(release)
               part.add_header('Content-Disposition', 'attachment', filename=fileName)
 
               msg.attach(part)
