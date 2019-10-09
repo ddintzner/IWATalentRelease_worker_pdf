@@ -17,3 +17,5 @@ class Config(object):
 	S3_FILELOCATION = os.environ.get('S3_FILELOCATION')  
 	ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'tif', 'tiff'])
 	SECRET_KEY =  os.environ.get('SECRET_KEY')  
+	ACCESS_SQS_KEY =  os.environ.get('ACCESS_SQS_KEY')
+	SECRET_SQS_KEY =  os.environ.get('SECRET_SQS_KEY')

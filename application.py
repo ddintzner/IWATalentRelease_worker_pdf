@@ -262,7 +262,7 @@ def customer_registered():
             uploaded_files = []
             uploadedimages = []
  
-
+ 
             imagePhoto  = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imagePortrait'] )
             uploadedimages.append(imagePhoto)
 
@@ -278,7 +278,7 @@ def customer_registered():
 
 
 
-            copy = talentRelease['userdetails']['releaseLegalCopy'].replace("\r\n", "<br />")
+            copy = release['userdetails']['releaseLegalCopy'].replace("\r\n", "<br />")
             copy = Markup(copy)
 
             typeSuffix = 'minor' if release['releasetemplate']['type'] == 'Minor' else 'standard'
