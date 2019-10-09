@@ -4,7 +4,7 @@ class Config(object):
 	
 	AWS_REGION = 'us-west-2'
 	FLASK_DEBUG = 'false'
-	SOURCE_EMAIL_ADDRESS = 'ddintzner@innoceanusa.com'
+	SOURCE_EMAIL_ADDRESS = 'techleadiwa@gmail.com'
 
 	SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')  
 	SQLALCHEMY_TRACK_MODIFICATIONS= False
