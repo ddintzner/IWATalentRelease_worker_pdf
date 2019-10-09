@@ -225,7 +225,7 @@ def customer_registered():
                 ses.send_raw_email(
                     
                     Source=application.config['SOURCE_EMAIL_ADDRESS'],
-                    Destinations=[emailTo, releaseCreated],
+                    Destinations=[emailTo, 'ddintzner@innoceanusa.com'],
                     RawMessage={
                         'Data': msg.as_string(),
                     }
@@ -252,6 +252,7 @@ def customer_registered():
             talentRelease['state'] = release['userdetails']['state']
             talentRelease['city'] = release['userdetails']['city']
             talentRelease['email'] = release['userdetails']['email']
+            talentRelease['createdby'] = release['createdby']
 
 
             #TODO: ADD LEGAL TITLE AND LEGAL VARS TO TALENTDB
@@ -299,7 +300,7 @@ def customer_registered():
 
 
 
-            sendEmail(filename, pdf, talentRelease['email'], release["createdby"])
+            sendEmail(filename, pdf, talentRelease['email'], talentRelease['createdby'])
             response = Response("", status=200)
 
 
