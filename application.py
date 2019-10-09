@@ -284,7 +284,7 @@ def customer_registered():
             typeSuffix = 'minor' if release['releasetemplate']['type'] == 'Minor' else 'standard'
 
             #create pdf template
-            rendered = render_template('renderrelease_' + typeSuffix + '.html',  talentRelease=release['releasetemplate']['copy'], uploadedimages=uploadedimages, legalCopy=copy)
+            rendered = render_template('renderrelease_' + typeSuffix + '.html',  talentRelease=talentRelease, uploadedimages=uploadedimages, legalCopy=copy)
 
             # pdf path
             filename =  "{0}-{1}{2}.pdf".format(release["talentreleasecode"] , talentRelease['firstname'], talentRelease['lastname'])
