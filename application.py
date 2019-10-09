@@ -188,9 +188,8 @@ def customer_registered():
             release["images"] = talentreleaseQuery.images
             release["notes"] = talentreleaseQuery.notes
 
-
-
-            def sendEmail(fileName, release, emailTo, releaseCreated):
+            #send email pdf attachment
+            def sendEmail(fileName, release, emailTo, releaseCreated, talentreleasecode):
 
               #https://docs.aws.amazon.com/ses/latest/DeveloperGuide/send-email-raw.html
               response = None
@@ -221,16 +220,33 @@ def customer_registered():
 
               msg.attach(part)
 
+              destinationsList = [] 
+              destinationsList.append(emailTo)
+              if releaseCreated is not None:
+                destinationsList.append(releaseCreated)
+
               try:
                 # And finally, send the email
                 ses.send_raw_email(
                     
                     Source=application.config['SOURCE_EMAIL_ADDRESS'],
-                    Destinations=[emailTo, 'ddintzner@innoceanusa.com'],
+                    Destinations=destinationsList,
                     RawMessage={
                         'Data': msg.as_string(),
                     }
                 )
+
+                talentreleaseQuery = TalentReleasesDB.query.filter_by(talentreleasecode=message['talentreleasecode']).first_or_404()
+
+                today = date.today()
+
+                talentreleaseQuery.emailtalentdate = today.strftime("%m/%d/%Y")
+                talentreleaseQuery.emailedtalent = true
+
+                db.session.commit()
+
+                response = Response("", status=200)
+
 
               # Display an error if something goes wrong. 
               except ClientError as e:
@@ -257,7 +273,6 @@ def customer_registered():
             talentRelease['zip'] = release['userdetails']['zip']
             talentRelease['createdby'] = release['createdby']
 
-
             #TODO: ADD LEGAL TITLE AND LEGAL VARS TO TALENTDB
             talentRelease['releaseLegalCopy'] = release['releasetemplate']['copy']  
             talentRelease['releaseLegalTitle'] = release['releasetemplate']['name'] 
@@ -267,14 +282,11 @@ def customer_registered():
             uploaded_files = []
             uploadedimages = []
  
-
             imagePhoto  = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imagePortrait'] )
             uploadedimages.append(imagePhoto)
 
-
             imageSignature = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imageSignature'] )
             uploadedimages.append(imageSignature)
-
 
             #if template is for minor, capture the name
             if release['releasetemplate']['type'] == 'Minor':
@@ -301,7 +313,7 @@ def customer_registered():
             talentreleaseQuery.pdflocation = pdfpath
             db.session.commit()
 
-            response = sendEmail(filename, pdf, talentRelease['email'], talentRelease['createdby'])
+            response = sendEmail(filename, pdf, talentRelease['email'], talentRelease['createdby'], release["talentreleasecode"])
 
 
         except Exception as ex:
