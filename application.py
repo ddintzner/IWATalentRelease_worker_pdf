@@ -277,8 +277,6 @@ def customer_registered():
                 talentRelease['minor_firstname'] = release['userdetails']['minor_firstname']
                 talentRelease['minor_lastname'] = release['userdetails']['minor_lastname']
 
-
-
             copy = talentRelease['releaseLegalCopy'].replace("\r\n", "<br />")
             copy = Markup(copy)
 
