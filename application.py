@@ -256,11 +256,10 @@ def customer_registered():
                 today = datetime.date.today()
 
                 talentreleaseQuery.emailtalentdate = today.strftime("%m/%d/%Y")
-                talentreleaseQuery.emailedtalent = true
+                talentreleaseQuery.emailedtalent = True
 
                 db.session.commit()
                 
-                #sqs.delete_message(QueueUrl=QUEUE_PDF_URL, ReceiptHandle=message.get('ReceiptHandle'))
 
                 response = Response("", status=200)
 
@@ -332,7 +331,7 @@ def customer_registered():
 
             t1 = threading.Thread(name="sendEmail", args=(filename, pdf, talentRelease['email'], talentRelease['createdby'], release["talentreleasecode"]), target=sendEmail)
             t1.start()
-            
+
             response = Response("", status=200) 
 
             #response = sendEmail(filename, pdf, talentRelease['email'], talentRelease['createdby'], release["talentreleasecode"])      
