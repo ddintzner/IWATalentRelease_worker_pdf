@@ -49,6 +49,9 @@ from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 
+#threading
+import threading
+
 
 db = SQLAlchemy()
 
@@ -82,7 +85,6 @@ QUEUE_PDF_URL='https://sqs.us-west-2.amazonaws.com/291551301640/IWATalentQueue_P
 
 # Create an SQS client
 #sqs = boto3.client('sqs', region_name='us-west-2', aws_access_key_id=ACCESS_SQS_KEY, aws_secret_access_key=SECRET_SQS_KEY )
-
 
 
 SUBJECT = "IWATalentRelease PDF"
@@ -165,13 +167,14 @@ def put_file_to_s3(output, bucket_name, filename):
 @application.route('/pdfWorker', methods=['POST'])
 def customer_registered():
 
-    response = Response("", status=200) 
+
 
     if request.json is None:
         # Expect application/json request
         response = Response("", status=415)
     else:
         message = dict()
+
         try:
             # If the message has an SNS envelope, extract the inner message
             if 'TopicArn' in request.json and 'Message' in request.json:
@@ -326,7 +329,13 @@ def customer_registered():
             talentreleaseQuery.pdflocation = pdfpath
             db.session.commit()
 
-            response = sendEmail(filename, pdf, talentRelease['email'], talentRelease['createdby'], release["talentreleasecode"])      
+
+            t1 = threading.Thread(name="sendEmail", args=(filename, pdf, talentRelease['email'], talentRelease['createdby'], release["talentreleasecode"]), target=sendEmail)
+            t1.start()
+            
+            response = Response("", status=200) 
+
+            #response = sendEmail(filename, pdf, talentRelease['email'], talentRelease['createdby'], release["talentreleasecode"])      
 
         except Exception as ex:
             logging.exception('Error processing message: %s' % request.json)
