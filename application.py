@@ -59,8 +59,8 @@ bootstrap = Bootstrap(application)
 
 application.debug = application.config['FLASK_DEBUG'] in ['true', 'True']
 
-application.config['ACCESS_SQS_KEY'] =  os.environ.get('ACCESS_SQS_KEY')  
-application.config['SECRET_SQS_KEY'] =  os.environ.get('SECRET_SQS_KEY')  
+application.config['ACCESS_SQS_KEY'] = os.environ.get('ACCESS_SQS_KEY')  
+application.config['SECRET_SQS_KEY'] = os.environ.get('SECRET_SQS_KEY')  
 
 
 
@@ -109,14 +109,13 @@ class TalentReleasesDB(db.Model):
        notes = db.Column(db.Date)
 
 
-
 #BOTO3
 s3R = boto3.resource(
     's3',
     aws_access_key_id = application.config['S3_KEY'],
     aws_secret_access_key = application.config['S3_SECRET']
-
 )
+
 
 
 def get_image_from_obj(bucket_name, filepath):
@@ -238,7 +237,7 @@ def customer_registered():
 
                 talentreleaseQuery = TalentReleasesDB.query.filter_by(talentreleasecode=message['talentreleasecode']).first_or_404()
 
-                today = date.today()
+                today = datetime.date.today()
 
                 talentreleaseQuery.emailtalentdate = today.strftime("%m/%d/%Y")
                 talentreleaseQuery.emailedtalent = true
