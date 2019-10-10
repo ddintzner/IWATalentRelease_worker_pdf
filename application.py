@@ -246,7 +246,6 @@ def customer_registered():
 
                 response = Response("", status=200)
 
-
               # Display an error if something goes wrong. 
               except ClientError as e:
                   response = Response(e.response['Error']['Message'], status=500)
@@ -265,7 +264,7 @@ def customer_registered():
             talentRelease['firstname'] = release['userdetails']['firstname']
             talentRelease['lastname'] = release['userdetails']['lastname']
             talentRelease['street'] = release['userdetails']['street']
-            talentRelease['phone'] = release['createdby']
+            talentRelease['phone'] = release['userdetails']['phone']
             talentRelease['state'] = release['userdetails']['state']
             talentRelease['city'] = release['userdetails']['city']
             talentRelease['email'] = release['userdetails']['email']
@@ -313,7 +312,7 @@ def customer_registered():
             db.session.commit()
 
             response = sendEmail(filename, pdf, talentRelease['email'], talentRelease['createdby'], release["talentreleasecode"])
-
+            return response         
 
         except Exception as ex:
             logging.exception('Error processing message: %s' % request.json)
@@ -321,7 +320,11 @@ def customer_registered():
 
     return response
 
+
 if __name__ == '__main__':
     application.run(host='0.0.0.0')
+
+
+
 
 
