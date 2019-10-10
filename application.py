@@ -68,6 +68,21 @@ application.config['SECRET_SQS_KEY'] = os.environ.get('SECRET_SQS_KEY')
 # Create a new SES resource and specify a region.
 ses = boto3.client('ses',region_name=application.config['AWS_REGION'])
 
+#BOTO3
+s3R = boto3.resource(
+    's3',
+    aws_access_key_id = application.config['S3_KEY'],
+    aws_secret_access_key = application.config['S3_SECRET']
+)
+
+ACCESS_SQS_KEY =  os.environ.get('ACCESS_SQS_KEY')
+SECRET_SQS_KEY =  os.environ.get('SECRET_SQS_KEY')
+QUEUE_PDF_URL='https://sqs.us-west-2.amazonaws.com/291551301640/IWATalentQueue_PDF'
+
+# Create an SQS client
+#sqs = boto3.client('sqs', region_name='us-west-2', aws_access_key_id=ACCESS_SQS_KEY, aws_secret_access_key=SECRET_SQS_KEY )
+
+
 
 SUBJECT = "IWATalentRelease PDF"
 
@@ -110,13 +125,6 @@ class TalentReleasesDB(db.Model):
        notes = db.Column(db.Date)
 
 
-#BOTO3
-s3R = boto3.resource(
-    's3',
-    aws_access_key_id = application.config['S3_KEY'],
-    aws_secret_access_key = application.config['S3_SECRET']
-)
-
 
 
 def get_image_from_obj(bucket_name, filepath):
@@ -156,7 +164,8 @@ def put_file_to_s3(output, bucket_name, filename):
 @application.route('/pdfWorker', methods=['POST'])
 def customer_registered():
 
-    response = None
+    response = Response("", status=200) 
+
     if request.json is None:
         # Expect application/json request
         response = Response("", status=415)
@@ -246,7 +255,9 @@ def customer_registered():
                 talentreleaseQuery.emailedtalent = true
 
                 db.session.commit()
-   
+                
+                #sqs.delete_message(QueueUrl=QUEUE_PDF_URL, ReceiptHandle=message.get('ReceiptHandle'))
+
                 response = Response("", status=200)
 
               # Display an error if something goes wrong. 
@@ -314,14 +325,14 @@ def customer_registered():
             talentreleaseQuery.pdflocation = pdfpath
             db.session.commit()
 
-            sleep(10)
-            
             response = sendEmail(filename, pdf, talentRelease['email'], talentRelease['createdby'], release["talentreleasecode"])      
 
         except Exception as ex:
             logging.exception('Error processing message: %s' % request.json)
             response = Response(ex.message, status=500)
 
+
+         
     return response
 
 
