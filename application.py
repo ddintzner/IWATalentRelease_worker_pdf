@@ -241,10 +241,11 @@ def customer_registered():
 
                 talentreleaseQuery.emailtalentdate = today.strftime("%m/%d/%Y")
                 talentreleaseQuery.emailedtalent = true
+                response = Response("", status=200)
+
 
                 db.session.commit()
-
-                response = Response("", status=200)
+   
 
               # Display an error if something goes wrong. 
               except ClientError as e:
