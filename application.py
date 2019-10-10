@@ -21,6 +21,7 @@ import math
 import string
 import logging
 import json
+import time
 
 #flask
 import flask
@@ -187,6 +188,8 @@ def customer_registered():
             release["images"] = talentreleaseQuery.images
             release["notes"] = talentreleaseQuery.notes
 
+
+
             #send email pdf attachment
             def sendEmail(fileName, release, emailTo, releaseCreated, talentreleasecode):
 
@@ -241,11 +244,10 @@ def customer_registered():
 
                 talentreleaseQuery.emailtalentdate = today.strftime("%m/%d/%Y")
                 talentreleaseQuery.emailedtalent = true
-                response = Response("", status=200)
-
 
                 db.session.commit()
    
+                response = Response("", status=200)
 
               # Display an error if something goes wrong. 
               except ClientError as e:
@@ -312,8 +314,9 @@ def customer_registered():
             talentreleaseQuery.pdflocation = pdfpath
             db.session.commit()
 
-            response = sendEmail(filename, pdf, talentRelease['email'], talentRelease['createdby'], release["talentreleasecode"])
-            return response         
+            sleep(10)
+            
+            response = sendEmail(filename, pdf, talentRelease['email'], talentRelease['createdby'], release["talentreleasecode"])      
 
         except Exception as ex:
             logging.exception('Error processing message: %s' % request.json)
