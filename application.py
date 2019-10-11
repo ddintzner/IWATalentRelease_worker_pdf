@@ -51,11 +51,11 @@ from email.mime.multipart import MIMEMultipart
 
 #threading
 import threading
-import queue as queue
+import queue
 
 
 db = SQLAlchemy()
-q = queue()  # use a queue to pass messages from the worker thread to the main thread
+q = queue.Queue()  # use a queue to pass messages from the worker thread to the main thread
 
 
 # Create and configure the Flask app
