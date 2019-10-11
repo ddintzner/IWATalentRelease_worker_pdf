@@ -51,7 +51,7 @@ from email.mime.multipart import MIMEMultipart
 
 #threading
 import threading
-from Queue import Queue
+from queue import queue
 
 
 db = SQLAlchemy()
