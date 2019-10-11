@@ -55,7 +55,7 @@ import queue as queue
 
 
 db = SQLAlchemy()
-q = Queue()  # use a queue to pass messages from the worker thread to the main thread
+q = queue()  # use a queue to pass messages from the worker thread to the main thread
 
 
 # Create and configure the Flask app
