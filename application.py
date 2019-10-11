@@ -206,7 +206,7 @@ def customer_registered():
 
 
             #send email pdf attachment
-            def sendEmail(fileName, release, emailTo, releaseCreated, talentcode):
+            def sendEmail(app, fileName, release, emailTo, releaseCreated, talentcode):
 
               #https://docs.aws.amazon.com/ses/latest/DeveloperGuide/send-email-raw.html
               response = None
@@ -254,14 +254,15 @@ def customer_registered():
                 )
 
                 
-          
-                talentreleaseThreadQuery = TalentReleasesDB.query.filter_by(talentreleasecode=talentcode).first_or_404()
+                with app.app_context():
 
-                today = datetime.date.today()
-                talentreleaseThreadQuery.emailtalentdate = today.strftime("%m/%d/%Y")
-                talentreleaseThreadQuery.emailedtalent = True
+                  talentreleaseThreadQuery = TalentReleasesDB.query.filter_by(talentreleasecode=talentcode).first_or_404()
 
-                db.session.commit()
+                  today = datetime.date.today()
+                  talentreleaseThreadQuery.emailtalentdate = today.strftime("%m/%d/%Y")
+                  talentreleaseThreadQuery.emailedtalent = True
+
+                  db.session.commit()
             
 
                 print('ses.send_raw_email')
@@ -351,7 +352,7 @@ def customer_registered():
             db.session.commit()
             db.session.close()
 
-            t1 = threading.Thread(name="sendEmail", args=(filename, pdf, talentRelease['email'], talentRelease['createdby'], message['talentreleasecode']), target=sendEmail)
+            t1 = threading.Thread(name="sendEmail", args=(application, filename, pdf, talentRelease['email'], talentRelease['createdby'], message['talentreleasecode']), target=sendEmail)
             t1.daemon = True
             t1.start()
 
