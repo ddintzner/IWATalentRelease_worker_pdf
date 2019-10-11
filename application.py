@@ -52,6 +52,8 @@ from email.mime.multipart import MIMEMultipart
 #threading
 import threading
 import queue
+from sqlalchemy.orm import scoped_session
+from sqlalchemy.orm import sessionmaker
 
 
 db = SQLAlchemy()
@@ -279,8 +281,8 @@ def customer_registered():
     
               return response
 
-            #talent release rendered
 
+            #talent release rendered
             talentRelease = {}
             talentRelease['date'] = release['userdetails']['date']
             talentRelease['firstname'] = release['userdetails']['firstname']
@@ -337,15 +339,19 @@ def customer_registered():
             def writeEmailToDB(code):
               print("writeEmailToDB: ", code)
 
+              talentreleaseThreadQuery = TalentReleasesDB.query.filter_by(talentreleasecode=talentcode).first_or_404()
+              
               today = datetime.date.today()
-              talentreleaseQuery.emailtalentdate = today.strftime("%m/%d/%Y")
-              talentreleaseQuery.emailedtalent = True
+              talentreleaseThreadQuery.emailtalentdate = today.strftime("%m/%d/%Y")
+              talentreleaseThreadQuery.emailedtalent = True
 
               db.session.commit()
 
     
 
             db.session.commit()
+            db.session.close()
+
 
             t1 = threading.Thread(name="sendEmail", args=(filename, pdf, talentRelease['email'], talentRelease['createdby'], message['talentreleasecode']), target=sendEmail)
             t1.daemon = True
