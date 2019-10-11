@@ -347,13 +347,12 @@ def customer_registered():
             t1.daemon = True
             t1.start()
 
+            response = Response("", status=200) 
+
             while True:  # a lightweight "event loop"
               code = q.get()
               writeEmailToDB(code)
               q.task_done()
-
-
-            response = Response("", status=200) 
 
 
             #response = sendEmail(filename, pdf, talentRelease['email'], talentRelease['createdby'], release["talentreleasecode"])      
