@@ -251,15 +251,15 @@ def customer_registered():
                     }
                 )
 
+                '''
                 talentreleaseQuery = TalentReleasesDB.query.filter_by(talentreleasecode=talentcode).first_or_404()
 
                 today = datetime.date.today()
-
                 talentreleaseQuery.emailtalentdate = today.strftime("%m/%d/%Y")
                 talentreleaseQuery.emailedtalent = True
 
                 db.session.commit()
-                
+                '''
 
                 response = Response("", status=200)
 
@@ -327,9 +327,14 @@ def customer_registered():
 
             #update talentrelease db with new settings
             talentreleaseQuery.pdflocation = pdfpath
+
+            today = datetime.date.today()
+            talentreleaseQuery.emailtalentdate = today.strftime("%m/%d/%Y")
+            talentreleaseQuery.emailedtalent = True
+
             db.session.commit()
 
-            t1 = threading.Thread(name="sendEmail", args=(filename, pdf, talentRelease['email'], talentRelease['createdby'], release["talentreleasecode"]), target=sendEmail)
+            t1 = threading.Thread(name="sendEmail", args=(filename, pdf, talentRelease['email'], talentRelease['createdby'], message['talentreleasecode']), target=sendEmail)
             t1.start()
 
             response = Response("", status=200) 
