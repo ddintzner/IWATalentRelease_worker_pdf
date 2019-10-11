@@ -338,6 +338,10 @@ def customer_registered():
               today = datetime.date.today()
               talentreleaseQuery.emailtalentdate = today.strftime("%m/%d/%Y")
               talentreleaseQuery.emailedtalent = True
+
+              db.session.commit()
+
+              response = Response("", status=200) 
     
 
             db.session.commit()
