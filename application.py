@@ -204,7 +204,7 @@ def customer_registered():
 
 
             #send email pdf attachment
-            def sendEmail(fileName, release, emailTo, releaseCreated, talentreleasecode):
+            def sendEmail(fileName, release, emailTo, releaseCreated, talentcode):
 
               #https://docs.aws.amazon.com/ses/latest/DeveloperGuide/send-email-raw.html
               response = None
@@ -251,7 +251,7 @@ def customer_registered():
                     }
                 )
 
-                talentreleaseQuery = TalentReleasesDB.query.filter_by(talentreleasecode=message['talentreleasecode']).first_or_404()
+                talentreleaseQuery = TalentReleasesDB.query.filter_by(talentreleasecode=talentcode).first_or_404()
 
                 today = datetime.date.today()
 
@@ -287,6 +287,7 @@ def customer_registered():
             talentRelease['email'] = release['userdetails']['email']
             talentRelease['zip'] = release['userdetails']['zip']
             talentRelease['createdby'] = release['createdby']
+
 
             #TODO: ADD LEGAL TITLE AND LEGAL VARS TO TALENTDB
             talentRelease['releaseLegalCopy'] = release['releasetemplate']['copy']  
@@ -328,11 +329,11 @@ def customer_registered():
             talentreleaseQuery.pdflocation = pdfpath
             db.session.commit()
 
-
             t1 = threading.Thread(name="sendEmail", args=(filename, pdf, talentRelease['email'], talentRelease['createdby'], release["talentreleasecode"]), target=sendEmail)
             t1.start()
 
             response = Response("", status=200) 
+
 
             #response = sendEmail(filename, pdf, talentRelease['email'], talentRelease['createdby'], release["talentreleasecode"])      
 
