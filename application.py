@@ -210,7 +210,6 @@ def customer_registered():
 
               #https://docs.aws.amazon.com/ses/latest/DeveloperGuide/send-email-raw.html
               response = None
-              talentreleaseThreadQuery = TalentReleasesDB.query.filter_by(talentreleasecode=talentcode).first_or_404()
 
               # Build an email
               msg = MIMEMultipart()
@@ -256,6 +255,8 @@ def customer_registered():
 
                 
                 '''
+                talentreleaseThreadQuery = TalentReleasesDB.query.filter_by(talentreleasecode=talentcode).first_or_404()
+
                 today = datetime.date.today()
                 talentreleaseThreadQuery.emailtalentdate = today.strftime("%m/%d/%Y")
                 talentreleaseThreadQuery.emailedtalent = True
