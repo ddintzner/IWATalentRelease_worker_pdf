@@ -347,7 +347,7 @@ def customer_registered():
             t1.start()
 
             while True:  # a lightweight "event loop"
-              ans = q.get()
+              code = q.get()
               writeEmailToDB(code)
               q.task_done()
 
