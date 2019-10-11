@@ -51,9 +51,11 @@ from email.mime.multipart import MIMEMultipart
 
 #threading
 import threading
+from Queue import Queue
 
 
 db = SQLAlchemy()
+q = Queue()  # use a queue to pass messages from the worker thread to the main thread
 
 
 # Create and configure the Flask app
@@ -208,8 +210,8 @@ def customer_registered():
 
               #https://docs.aws.amazon.com/ses/latest/DeveloperGuide/send-email-raw.html
               response = None
-              talentreleaseQuery = TalentReleasesDB.query.filter_by(talentreleasecode=talentcode).first_or_404()
-              
+              talentreleaseThreadQuery = TalentReleasesDB.query.filter_by(talentreleasecode=talentcode).first_or_404()
+
               # Build an email
               msg = MIMEMultipart()
               msg['Subject'] = "IWATalentRelease PDF"
@@ -253,13 +255,15 @@ def customer_registered():
                 )
 
                 
-
+                '''
                 today = datetime.date.today()
-                talentreleaseQuery.emailtalentdate = today.strftime("%m/%d/%Y")
-                talentreleaseQuery.emailedtalent = True
+                talentreleaseThreadQuery.emailtalentdate = today.strftime("%m/%d/%Y")
+                talentreleaseThreadQuery.emailedtalent = True
 
                 db.session.commit()
-              
+                '''
+
+                q.put(talentcode)  # send the answer to the main thread's queue
 
                 response = Response("", status=200)
 
@@ -328,17 +332,24 @@ def customer_registered():
             #update talentrelease db with new settings
             talentreleaseQuery.pdflocation = pdfpath
 
-            '''
-            today = datetime.date.today()
-            talentreleaseQuery.emailtalentdate = today.strftime("%m/%d/%Y")
-            talentreleaseQuery.emailedtalent = True
-            '''
+
+            def writeEmailToDB(code):
+
+              today = datetime.date.today()
+              talentreleaseQuery.emailtalentdate = today.strftime("%m/%d/%Y")
+              talentreleaseQuery.emailedtalent = True
+    
 
             db.session.commit()
 
             t1 = threading.Thread(name="sendEmail", args=(filename, pdf, talentRelease['email'], talentRelease['createdby'], message['talentreleasecode']), target=sendEmail)
             t1.daemon = True
             t1.start()
+
+            while True:  # a lightweight "event loop"
+              ans = q.get()
+              writeEmailToDB(code)
+              q.task_done()
 
 
             response = Response("", status=200) 
