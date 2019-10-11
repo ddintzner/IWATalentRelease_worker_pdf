@@ -264,9 +264,10 @@ def customer_registered():
                 db.session.commit()
                 '''
 
+                print('ses.send_raw_email')
+
                 q.put(talentcode)  # send the answer to the main thread's queue
 
-                response = Response("", status=200)
 
               # Display an error if something goes wrong. 
               except ClientError as e:
@@ -335,13 +336,14 @@ def customer_registered():
 
             def writeEmailToDB(code):
               print("writeEmailToDB: ", code)
+
+
               today = datetime.date.today()
               talentreleaseQuery.emailtalentdate = today.strftime("%m/%d/%Y")
               talentreleaseQuery.emailedtalent = True
 
               db.session.commit()
 
-              response = Response("", status=200) 
     
 
             db.session.commit()
@@ -357,7 +359,7 @@ def customer_registered():
               writeEmailToDB(code)
               q.task_done()
 
-
+  
             #response = sendEmail(filename, pdf, talentRelease['email'], talentRelease['createdby'], release["talentreleasecode"])      
 
         except Exception as ex:
