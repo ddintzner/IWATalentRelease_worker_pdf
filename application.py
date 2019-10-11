@@ -273,8 +273,7 @@ def customer_registered():
                   response = Response(e.response['Error']['Message'], status=500)
 
               else:
-                  print("Email sent! Message ID:"),
-                  print(response['MessageId'])
+                  print("Email sent!")
                   response = Response("", status=200)
     
               return response
@@ -335,7 +334,7 @@ def customer_registered():
 
 
             def writeEmailToDB(code):
-
+              print("writeEmailToDB: ", code)
               today = datetime.date.today()
               talentreleaseQuery.emailtalentdate = today.strftime("%m/%d/%Y")
               talentreleaseQuery.emailedtalent = True
