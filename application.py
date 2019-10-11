@@ -208,7 +208,8 @@ def customer_registered():
 
               #https://docs.aws.amazon.com/ses/latest/DeveloperGuide/send-email-raw.html
               response = None
-
+              talentreleaseQuery = TalentReleasesDB.query.filter_by(talentreleasecode=talentcode).first_or_404()
+              
               # Build an email
               msg = MIMEMultipart()
               msg['Subject'] = "IWATalentRelease PDF"
@@ -251,7 +252,7 @@ def customer_registered():
                     }
                 )
 
-                talentreleaseQuery = TalentReleasesDB.query.filter_by(talentreleasecode=talentcode).first_or_404()
+                
 
                 today = datetime.date.today()
                 talentreleaseQuery.emailtalentdate = today.strftime("%m/%d/%Y")
