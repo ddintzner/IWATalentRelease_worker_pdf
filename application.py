@@ -131,7 +131,6 @@ class TalentReleasesDB(db.Model):
 
 
 
-
 def get_image_from_obj(bucket_name, filepath):
 
     #a few steps to take so we can use 'download_fileobj' to decrypt the 'aws:kms'
@@ -186,6 +185,8 @@ def customer_registered():
 
             # structure
             # {'talentreleasecode': val}
+
+            print('query table with talentreleasecode: ',message['talentreleasecode'])
             talentreleaseQuery = TalentReleasesDB.query.filter_by(talentreleasecode=message['talentreleasecode']).first_or_404()
 
             release = {}
@@ -203,9 +204,10 @@ def customer_registered():
             release["images"] = talentreleaseQuery.images
             release["notes"] = talentreleaseQuery.notes
 
+            print('release: ', release)
 
-
-            #send email pdf attachment
+            #send email pdf attachment 
+            #pass the application to the thread to get access to SQLAlchemy 
             def sendEmail(app, fileName, release, emailTo, releaseCreated, talentcode):
 
               #https://docs.aws.amazon.com/ses/latest/DeveloperGuide/send-email-raw.html
@@ -215,7 +217,7 @@ def customer_registered():
               msg = MIMEMultipart()
               msg['Subject'] = "IWATalentRelease PDF"
               msg['From'] = application.config['SOURCE_EMAIL_ADDRESS']
-              msg['To'] = emailTo
+              msg['To'] = emailTo if emailTo is not None
 
               # Create a multipart/alternative child container.
               msg_body = MIMEMultipart('alternative')
@@ -238,9 +240,13 @@ def customer_registered():
               msg.attach(part)
 
               destinationsList = [] 
-              destinationsList.append(emailTo)
+
+              if emailTo is not None:
+                destinationsList.append(emailTo)
+
               if releaseCreated is not None:
                 destinationsList.append(releaseCreated)
+
 
               try:
                 # And finally, send the email
@@ -254,6 +260,7 @@ def customer_registered():
                 )
 
                 
+                #reference the main application
                 with app.app_context():
 
                   talentreleaseThreadQuery = TalentReleasesDB.query.filter_by(talentreleasecode=talentcode).first_or_404()
@@ -263,11 +270,9 @@ def customer_registered():
                   talentreleaseThreadQuery.emailedtalent = True
 
                   db.session.commit()
-            
+                  print('db commit to emailedtalent, emailtalentdate')
 
                 print('ses.send_raw_email')
-
-                q.put(talentcode)  # send the answer to the main thread's queue
 
 
               # Display an error if something goes wrong. 
@@ -279,6 +284,7 @@ def customer_registered():
                   response = Response("", status=200)
     
               return response
+
 
 
             #talent release rendered
@@ -299,16 +305,27 @@ def customer_registered():
             talentRelease['releaseLegalCopy'] = release['releasetemplate']['copy']  
             talentRelease['releaseLegalTitle'] = release['releasetemplate']['name'] 
 
+
+            print('assign talentRelease: ', talentRelease)
+
+
             #images details
             images = {}
             uploaded_files = []
             uploadedimages = []
- 
+  
+            print('images load')
+
             imagePhoto  = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imagePortrait'] )
             uploadedimages.append(imagePhoto)
 
+            print('uploadedimages imagePortrait')
+
+
             imageSignature = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imageSignature'] )
             uploadedimages.append(imageSignature)
+
+            print('uploadedimages imageSignature')
 
             #if template is for minor, capture the name
             if release['releasetemplate']['type'] == 'Minor':
@@ -318,36 +335,30 @@ def customer_registered():
             copy = talentRelease['releaseLegalCopy'].replace("\r\n", "<br />")
             copy = Markup(copy)
 
+            print('format copy: ', copy)
+
             typeSuffix = 'minor' if release['releasetemplate']['type'] == 'Minor' else 'standard'
 
             #create pdf template
             rendered = render_template('renderrelease_' + typeSuffix + '.html',  talentRelease=talentRelease, uploadedimages=uploadedimages, legalCopy=copy)
+            print('rendered template: ', rendered)
+
 
             # pdf path
             filename =  "{0}-{1}{2}.pdf".format(release["talentreleasecode"] , talentRelease['firstname'], talentRelease['lastname'])
             pdfpath = "{0}/{1}".format(release["projectID"], filename)  
 
+            print('set to apply pdfkit ')
+
             #render pdf
             pdf = pdfkit.from_string(rendered, False)
             put_file_to_s3(pdf, application.config["S3_BUCKET"], pdfpath)
 
+            print('applied pdfkit, saved to path: ', pdfpath)
+
+
             #update talentrelease db with new settings
             talentreleaseQuery.pdflocation = pdfpath
-
-
-            def writeEmailToDB(code):
-              print("writeEmailToDB: ", code)
-
-              talentreleaseThreadQuery = TalentReleasesDB.query.filter_by(talentreleasecode=talentcode).first_or_404()
-
-              today = datetime.date.today()
-              talentreleaseThreadQuery.emailtalentdate = today.strftime("%m/%d/%Y")
-              talentreleaseThreadQuery.emailedtalent = True
-
-              db.session.commit()
-
-
-    
 
             db.session.commit()
             db.session.close()
@@ -356,18 +367,7 @@ def customer_registered():
             t1.daemon = True
             t1.start()
 
-            
-            '''
-            while True:  # a lightweight "event loop"
-              code = q.get()
-              writeEmailToDB(code)
-              q.task_done()
-            '''
-              
-
             response = Response("", status=200) 
-
-            #response = sendEmail(filename, pdf, talentRelease['email'], talentRelease['createdby'], release["talentreleasecode"])      
 
         except Exception as ex:
             logging.exception('Error processing message: %s' % request.json)
