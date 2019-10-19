@@ -213,11 +213,18 @@ def customer_registered():
               #https://docs.aws.amazon.com/ses/latest/DeveloperGuide/send-email-raw.html
               response = None
 
+              destinationEmail = ''
+
+              if emailTo is None:
+                destinationEmail = releaseCreated
+              else:
+                destinationEmail = emailTo
+
               # Build an email
               msg = MIMEMultipart()
               msg['Subject'] = "IWATalentRelease PDF"
               msg['From'] = application.config['SOURCE_EMAIL_ADDRESS']
-              msg['To'] = emailTo if emailTo is not None
+              msg['To'] = destinationEmail
 
               # Create a multipart/alternative child container.
               msg_body = MIMEMultipart('alternative')
