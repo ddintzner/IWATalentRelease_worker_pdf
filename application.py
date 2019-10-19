@@ -186,7 +186,6 @@ def customer_registered():
             # structure
             # {'talentreleasecode': val}
 
-            print('query table with talentreleasecode: ',message['talentreleasecode'])
             talentreleaseQuery = TalentReleasesDB.query.filter_by(talentreleasecode=message['talentreleasecode']).first_or_404()
 
             release = {}
@@ -204,8 +203,6 @@ def customer_registered():
             release["images"] = talentreleaseQuery.images
             release["notes"] = talentreleaseQuery.notes
 
-            print('release: ', release)
-
             #send email pdf attachment 
             #pass the application to the thread to get access to SQLAlchemy 
             def sendEmail(app, fileName, release, emailTo, releaseCreated, talentcode):
@@ -219,6 +216,8 @@ def customer_registered():
                 destinationEmail = releaseCreated
               else:
                 destinationEmail = emailTo
+
+              print("Send Email to: ",  destinationEmail)
 
               # Build an email
               msg = MIMEMultipart()
@@ -253,6 +252,8 @@ def customer_registered():
 
               if releaseCreated is not None:
                 destinationsList.append(releaseCreated)
+
+              print("destinationsList: ",  destinationsList)
 
 
               try:
@@ -312,27 +313,23 @@ def customer_registered():
             talentRelease['releaseLegalCopy'] = release['releasetemplate']['copy']  
             talentRelease['releaseLegalTitle'] = release['releasetemplate']['name'] 
 
-
-            print('assign talentRelease: ', talentRelease)
-
-
             #images details
             images = {}
             uploaded_files = []
             uploadedimages = []
   
-            print('images load')
+            #print('images load')
 
             imagePhoto  = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imagePortrait'] )
             uploadedimages.append(imagePhoto)
 
-            print('uploadedimages imagePortrait')
+            #print('uploadedimages imagePortrait')
 
 
             imageSignature = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imageSignature'] )
             uploadedimages.append(imageSignature)
 
-            print('uploadedimages imageSignature')
+            #print('uploadedimages imageSignature')
 
             #if template is for minor, capture the name
             if release['releasetemplate']['type'] == 'Minor':
@@ -342,20 +339,20 @@ def customer_registered():
             copy = talentRelease['releaseLegalCopy'].replace("\r\n", "<br />")
             copy = Markup(copy)
 
-            print('format copy: ', copy)
+            #print('format copy: ', copy)
 
             typeSuffix = 'minor' if release['releasetemplate']['type'] == 'Minor' else 'standard'
 
             #create pdf template
             rendered = render_template('renderrelease_' + typeSuffix + '.html',  talentRelease=talentRelease, uploadedimages=uploadedimages, legalCopy=copy)
-            print('rendered template: ', rendered)
+            #print('rendered template: ', rendered)
 
 
             # pdf path
             filename =  "{0}-{1}{2}.pdf".format(release["talentreleasecode"] , talentRelease['firstname'], talentRelease['lastname'])
-            pdfpath = "{0}/{1}".format(release["projectID"], filename)  
+            pdfpath = "{0}/{1}".format(release["talentreleasecode"] , filename)  
 
-            print('set to apply pdfkit ')
+            #print('set to apply pdfkit ')
 
             #render pdf
             pdf = pdfkit.from_string(rendered, False)
