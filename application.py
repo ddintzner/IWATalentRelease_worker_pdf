@@ -100,34 +100,46 @@ BODY_TEXT = ("We have your IWAtalentrelease PDF attached. Thank you")
 BODY_HTML = """<html>
 <head></head>
 <body>
-  <h1>Thank You!</h1>
+  <h2>Thank You for </h2>
   <p>%s, your IWATalentRelease is attached. %s!\n\n</p>
 </body>
 </html>
-            """     
+            """  
 
 # The character encoding for the email.
 CHARSET = "UTF-8"
+  
 
+def formatBodyHTML(name):
+
+  html =   """<html>
+  <head></head>
+  <body>
+    <h2>Thank you {0} for your assistance.</h2>
+    <p>Your IWATalentRelease is attached. We appreciate your help with our photograpy shoot.</p>
+  </body>
+  </html>""".format(name, date, creator)   
+
+  return html
 
 
 class TalentReleasesDB(db.Model):
-       __tablename__ = 'releases'
-       
-       talentreleasecode = db.Column(db.String, primary_key=True)
-       userdetails = db.Column(db.JSON)
-       images = db.Column(db.JSON)
-       pdflocation = db.Column(db.String)
-       projectID = db.Column(db.String)
-       releasetemplate = db.Column(db.String)
-       createdby = db.Column(db.String)
-       createddate = db.Column(db.Date)
-       uploadeddate = db.Column(db.Date)
-       emailedtalent = db.Column(db.Boolean)
-       emailtalentdate = db.Column(db.Date)
-       verified = db.Column(db.Boolean)
-       verifieddate = db.Column(db.Date)
-       notes = db.Column(db.Date)
+    __tablename__ = 'releases'
+
+    talentreleasecode = db.Column(db.String, primary_key=True)
+    userdetails = db.Column(db.JSON)
+    images = db.Column(db.JSON)
+    pdflocation = db.Column(db.String)
+    projectID = db.Column(db.String)
+    releasetemplate = db.Column(db.String)
+    createdby = db.Column(db.String)
+    createddate = db.Column(db.Date)
+    uploadeddate = db.Column(db.Date)
+    emailedtalent = db.Column(db.Boolean)
+    emailtalentdate = db.Column(db.Date)
+    verified = db.Column(db.Boolean)
+    verifieddate = db.Column(db.Date)
+    notes = db.Column(db.Date)
 
 
 
@@ -205,7 +217,7 @@ def customer_registered():
 
             #send email pdf attachment 
             #pass the application to the thread to get access to SQLAlchemy 
-            def sendEmail(app, fileName, release, emailTo, releaseCreated, talentcode):
+            def sendEmail(app, talentname, fileName, release, emailTo, releaseCreated, talentcode):
 
               #https://docs.aws.amazon.com/ses/latest/DeveloperGuide/send-email-raw.html
               response = None
@@ -228,10 +240,13 @@ def customer_registered():
               # Create a multipart/alternative child container.
               msg_body = MIMEMultipart('alternative')
 
+
               # Encode the text and HTML content and set the character encoding. This step is
               # necessary if you're sending a message with characters outside the ASCII range.
+              BODY_HTML_FORMATTED = formatBodyHTML(talentname)
+
               textpart = MIMEText(BODY_TEXT.encode(CHARSET), 'plain', CHARSET)
-              htmlpart = MIMEText(BODY_HTML.encode(CHARSET), 'html', CHARSET)
+              htmlpart = MIMEText(BODY_HTML_FORMATTED.encode(CHARSET), 'html', CHARSET)
 
               # Add the text and HTML parts to the child container.
               msg_body.attach(textpart)
@@ -367,7 +382,8 @@ def customer_registered():
             db.session.commit()
             db.session.close()
 
-            t1 = threading.Thread(name="sendEmail", args=(application, filename, pdf, talentRelease['email'], talentRelease['createdby'], message['talentreleasecode']), target=sendEmail)
+            talentname = "{0} {1}".format( talentRelease['firstname'], talentRelease['lastname'])
+            t1 = threading.Thread(name="sendEmail", args=(application, talentname,  filename, pdf, talentRelease['email'], talentRelease['createdby'], message['talentreleasecode']), target=sendEmail)
             t1.daemon = True
             t1.start()
 
