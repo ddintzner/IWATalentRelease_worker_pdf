@@ -118,7 +118,7 @@ def formatBodyHTML(name):
     <h2>Thank you {0} for your assistance.</h2>
     <p>Your IWATalentRelease is attached. We appreciate your help with our photograpy shoot.</p>
   </body>
-  </html>""".format(name, date, creator)   
+  </html>""".format(name)   
 
   return html
 
