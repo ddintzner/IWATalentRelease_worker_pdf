@@ -337,23 +337,28 @@ def customer_registered():
 
             #portrait
 
-            asset = ""
+            assetPortrait = ""
 
             #if image portrait exists
             if "imagePortrait" in release["images"]:
-                asset = release['images']['imagePortrait']
+                assetPortrait = release['images']['imagePortrait']
             else:
-                asset = "assets/portrait_placeholder_4x3.jpg"
+                assetPortrait = "assets/portrait_placeholder_4x3.jpg"
 
 
-            imagePhoto  = get_image_from_obj(application.config["S3_BUCKET"], asset )
+            imagePhoto  = get_image_from_obj(application.config["S3_BUCKET"], assetPortrait )
             uploadedimages.append(imagePhoto)
 
 
             #print('uploadedimages imagePortrait')
+            assetSignature = ""
 
+            if "imageSignature" in release["images"]:
+                assetSignature = release['images']['imageSignature']
+            else:
+                assetSignature = "assets/signature_placeholder_16x9.png"
 
-            imageSignature = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imageSignature'] )
+            imageSignature = get_image_from_obj(application.config["S3_BUCKET"], assetSignature )
             uploadedimages.append(imageSignature)
 
             #print('uploadedimages imageSignature')
