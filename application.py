@@ -334,9 +334,22 @@ def customer_registered():
             uploadedimages = []
   
             #print('images load')
+            imagePhoto = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imagePortrait'] )
 
-            imagePhoto  = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imagePortrait'] )
+            #portrait
+            asset = ""
+
+
+            #if image portrait exists
+            if "imagePortrait" in release["images"]:
+                asset = release['images']['imagePortrait']
+            else:
+                asset = "assets/portrait_placeholder_4x3.jpg"
+
+
+            imagePhoto  = get_image_from_obj(application.config["S3_BUCKET"], asset )
             uploadedimages.append(imagePhoto)
+
 
             #print('uploadedimages imagePortrait')
 
