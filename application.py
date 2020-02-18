@@ -93,7 +93,7 @@ SUBJECT = "IWATalentRelease PDF"
 
 
 # The email body for recipients with non-HTML email clients.
-BODY_TEXT = ("We have your IWAtalentrelease PDF attached. Thank you")
+BODY_TEXT = ("The IWAtalentrelease PDF attached.")
 
             
 # The HTML body of the email.
@@ -110,18 +110,23 @@ BODY_HTML = """<html>
 CHARSET = "UTF-8"
   
 
-def formatBodyHTML(name):
+def formatBodyHTML(name, contact):
 
   html =   """<html>
   <head></head>
   <body>
-    <h2>Thank you {0} for your assistance.</h2>
-    <p>Your IWATalentRelease is attached. We appreciate your help with our photograpy shoot.</p>
+    <p>The IWATalentRelease for {0} is attached. </p>
   </body>
   </html>""".format(name)   
 
   return html
 
+
+def formatSubjectHTML(name):
+
+  html =  "IWATalentRelease PDF for ".format(name)   
+
+  return html
 
 class TalentReleasesDB(db.Model):
     __tablename__ = 'releases'
@@ -322,6 +327,9 @@ def customer_registered():
             talentRelease['email'] = release['userdetails']['email']
             talentRelease['zip'] = release['userdetails']['zip']
             talentRelease['createdby'] = release['createdby']
+            talentRelease['emailedtalent'] = release['emailedtalent']
+
+
 
 
             #TODO: ADD LEGAL TITLE AND LEGAL VARS TO TALENTDB
@@ -333,32 +341,27 @@ def customer_registered():
             uploaded_files = []
             uploadedimages = []
   
-            #imagePhoto = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imagePortrait'] )
+            #print('images load')
+            imagePhoto = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imagePortrait'] )
 
             #portrait
+            asset = ""
 
-            assetPortrait = ""
 
             #if image portrait exists
             if "imagePortrait" in release["images"]:
-                assetPortrait = release['images']['imagePortrait']
+                asset = release['images']['imagePortrait']
             else:
-                assetPortrait = "assets/portrait_placeholder_4x3.jpg"
+                asset = "assets/portrait_placeholder_4x3.jpg"
 
-
-            imagePhoto  = get_image_from_obj(application.config["S3_BUCKET"], assetPortrait )
+            imagePhoto  = get_image_from_obj(application.config["S3_BUCKET"], asset )
             uploadedimages.append(imagePhoto)
 
 
             #print('uploadedimages imagePortrait')
-            assetSignature = ""
 
-            if "imageSignature" in release["images"]:
-                assetSignature = release['images']['imageSignature']
-            else:
-                assetSignature = "assets/signature_placeholder_16x9.png"
 
-            imageSignature = get_image_from_obj(application.config["S3_BUCKET"], assetSignature )
+            imageSignature = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imageSignature'] )
             uploadedimages.append(imageSignature)
 
             #print('uploadedimages imageSignature')
@@ -399,12 +402,18 @@ def customer_registered():
             db.session.commit()
             db.session.close()
 
-            talentname = "{0} {1}".format( talentRelease['firstname'], talentRelease['lastname'])
-            t1 = threading.Thread(name="sendEmail", args=(application, talentname,  filename, pdf, talentRelease['email'], talentRelease['createdby'], message['talentreleasecode']), target=sendEmail)
-            t1.daemon = True
-            t1.start()
+            if talentRelease['emailedtalent']:
 
-            response = Response("", status=200) 
+              talentname = "{0} {1}".format( talentRelease['firstname'], talentRelease['lastname'])
+              t1 = threading.Thread(name="sendEmail", args=(application, talentname,  filename, pdf, talentRelease['email'], talentRelease['createdby'], message['talentreleasecode']), target=sendEmail)
+              t1.daemon = True
+              t1.start()
+
+              response = Response("", status=200) 
+
+            else:
+
+              response = Response("", status=200) 
 
         except Exception as ex:
             logging.exception('Error processing message: %s' % request.json)
