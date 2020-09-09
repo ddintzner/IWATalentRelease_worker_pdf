@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 import sys
 import os
 from datetime import datetime, timedelta, timezone
@@ -54,6 +55,8 @@ import threading
 import queue
 
 
+print("start pdf worker - imported complete")
+
 db = SQLAlchemy()
 q = queue.Queue()  # use a queue to pass messages from the worker thread to the main thread
 
@@ -83,10 +86,8 @@ s3R = boto3.resource(
 
 ACCESS_SQS_KEY =  os.environ.get('ACCESS_SQS_KEY')
 SECRET_SQS_KEY =  os.environ.get('SECRET_SQS_KEY')
-QUEUE_PDF_URL='https://sqs.us-west-2.amazonaws.com/291551301640/IWATalentQueue_PDF'
 
-# Create an SQS client
-#sqs = boto3.client('sqs', region_name='us-west-2', aws_access_key_id=ACCESS_SQS_KEY, aws_secret_access_key=SECRET_SQS_KEY )
+print("ACCESS_SQS_KEY : {0}".format(ACCESS_SQS_KEY))
 
 
 SUBJECT = "IWATalentRelease PDF"
@@ -127,6 +128,7 @@ def formatSubjectHTML(name):
   html =  "IWATalentRelease PDF for ".format(name)   
 
   return html
+
 
 class TalentReleasesDB(db.Model):
     __tablename__ = 'releases'
@@ -180,13 +182,15 @@ def put_file_to_s3(output, bucket_name, filename):
 
 
 
+
 # C R E A T E   A N D   E M A I L   P D F
 
 @application.route('/pdfWorker', methods=['POST'])
 def customer_registered():
 
 
-
+    print('pdfWorker route called:')
+    
     if request.json is None:
         # Expect application/json request
         response = Response("", status=415)

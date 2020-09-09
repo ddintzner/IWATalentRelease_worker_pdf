@@ -3,7 +3,7 @@ import os
 class Config(object):
 	
 	AWS_REGION = 'us-west-2'
-	FLASK_DEBUG = 'false'
+	FLASK_DEBUG = 'true'
 	SOURCE_EMAIL_ADDRESS = 'iwatalentrelease@innoceanusa.com'
 
 	SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')  
