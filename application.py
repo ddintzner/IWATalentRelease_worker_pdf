@@ -142,7 +142,7 @@ class TalentReleasesDB(db.Model):
     createdby = db.Column(db.String)
     createddate = db.Column(db.Date)
     uploadeddate = db.Column(db.Date)
-    emailedtalent = db.Column(db.Boolean)
+    emailedtalent = db.Column(db.Boolean, default=False)
     emailtalentdate = db.Column(db.Date)
     verified = db.Column(db.Boolean)
     verifieddate = db.Column(db.Date)
@@ -331,7 +331,7 @@ def customer_registered():
             talentRelease['email'] = release['userdetails']['email']
             talentRelease['zip'] = release['userdetails']['zip']
             talentRelease['createdby'] = release['createdby']
-            talentRelease['emailedtalent'] = release['emailedtalent']
+            talentRelease['emailedtalent'] = False
 
 
 
