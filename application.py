@@ -71,6 +71,9 @@ application.debug = application.config['FLASK_DEBUG'] in ['true', 'True']
 
 application.config['ACCESS_SQS_KEY'] = os.environ.get('ACCESS_SQS_KEY')  
 application.config['SECRET_SQS_KEY'] = os.environ.get('SECRET_SQS_KEY')  
+application.config['IMAGE_PORTRAIT'] = os.environ.get('IMAGE_PORTRAIT')  
+application.config['IMAGE_SIGNATURE'] = os.environ.get('IMAGE_SIGNATURE')  
+
 
 
 
@@ -344,25 +347,25 @@ def customer_registered():
             images = {}
             uploaded_files = []
             uploadedimages = []
-  
-            #print('images load')
-            imagePhoto = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imagePortrait'] )
-
-            #portrait
             asset = ""
 
 
-            #if image portrait exists
+            #check if we did not include a portrait photo
             if "imagePortrait" in release["images"]:
                 asset = release['images']['imagePortrait']
             else:
-                asset = "assets/portrait_placeholder_4x3.jpg"
+                asset = os.environ.get('IMAGE_PORTRAIT')
+
 
             imagePhoto  = get_image_from_obj(application.config["S3_BUCKET"], asset )
             uploadedimages.append(imagePhoto)
 
 
-            #print('uploadedimages imagePortrait')
+            #check if we did not include an signature
+            if "imageSignature" in release["images"]:
+                asset = release['images']['imageSignature']
+            else:
+                asset = os.environ.get('IMAGE_SIGNATURE')
 
 
             imageSignature = get_image_from_obj(application.config["S3_BUCKET"], release['images']['imageSignature'] )

@@ -1,0 +1,34 @@
+#https://majestic.cloud/how-to-install-wkhtmltopdf-on-amazon-linux/
+#https://gist.githubusercontent.com/armetiz/bd639d2bf1b009ba4bd15e406781858a/raw/88a7737a179a1185f6110dd8c5564f8755139420/01_1_wkhtmltopdf_dependencies.config
+
+#another installation of libpng15
+#https://ubuntuforums.org/showthread.php?t=2138623
+
+#remove yum rpm
+#https://www.howtoforge.com/community/threads/how-do-i-uninstall-rpm-packages.8/
+
+
+packages:
+  yum:
+    zlib: []
+    fontconfig: []
+    freetype: []
+    libX11: []
+    libXext: []
+    libXrender: []
+    xorg-x11-fonts-75dpi: []
+    xorg-x11-fonts-Type1: []
+
+commands:
+  "01-libpng-download":
+    command: wget https://sourceforge.net/projects/libpng/files/libpng15/older-releases/1.5.15/libpng-1.5.15.tar.gz/download -O libpng-1.5.15.tar.gz
+  "02-libpng-extract":
+    command: tar xzvf /tmp/libpng-1.5.15.tar.gz 
+  "03-libpng-compilation":
+    command: cd /tmp/libpng-1.5.15 && ./configure && sudo make install
+  "04-libpng-clean":
+    command: sudo rm -rf /tmp/libpng-1.5.15*
+  "05-link-libpng15":
+    command: sudo ln -s /usr/local/lib/libpng15.so /usr/lib
+    #this isnt working - need to add to the libpng to the path
+    command: export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/libpng/lib
